@@ -1,0 +1,14 @@
+Source: percona-release
+Section: admin
+Priority: extra
+Maintainer: Alexey Bychko <alexey.bychko@percona.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+Homepage: http://repo.percona.com
+Vcs-Git: git://github.com/percona/percona-repositories.git
+
+Package: percona-release
+Architecture: all
+Depends: ${misc:Depends}
+Description: Package to install Percona gpg key and apt repo
+
