@@ -1,8 +1,8 @@
 #
 # Percona releases, stable
 #
-#deb http://repo.percona.com/apt @@VERSION@@ main
-#deb-src http://repo.percona.com/apt @@VERSION@@ main
+deb http://repo.percona.com/apt @@VERSION@@ main
+deb-src http://repo.percona.com/apt @@VERSION@@ main
 #
 # Testing pkg source for pre-release packages
 #
@@ -11,6 +11,6 @@
 #
 # Experimental pkg source, use with caution!
 #
-deb http://repo.percona.com/apt @@VERSION@@ experimental
-deb-src http://repo.percona.com/apt @@VERSION@@ experimental
+#deb http://repo.percona.com/apt @@VERSION@@ experimental
+#deb-src http://repo.percona.com/apt @@VERSION@@ experimental
 
