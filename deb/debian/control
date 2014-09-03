@@ -3,7 +3,7 @@ Section: admin
 Priority: extra
 Maintainer: Percona Development Team <mysql-dev@percona.com>
 Uploaders: Alexey Bychko <alexey.bychko@percona.com>
-Build-Depends: debhelper (>= 8.0.0), lsb-release
+Build-Depends: debhelper, lsb-release
 Standards-Version: 3.9.2
 Homepage: http://repo.percona.com
 Vcs-Git: git://github.com/percona/percona-repositories.git
