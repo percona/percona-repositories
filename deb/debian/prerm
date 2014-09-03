@@ -23,9 +23,6 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-      if [ -f /etc/trusted.gpg.d/percona-keyring.gpg ]; then
-        rm -f /etc/trusted.gpg.d/percona-keyring.gpg
-      fi
     ;;
 
     failed-upgrade)

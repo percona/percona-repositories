@@ -25,9 +25,6 @@ set -e
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-      if [ -f /etc/apt/trusted.gpg.d/percona-keyring.gpg ]; then
-        rm -f /etc/apt/trusted.gpg.d/percona-keyring.gpg
-      fi
     ;;
 
     *)
