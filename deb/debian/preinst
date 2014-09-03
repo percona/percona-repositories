@@ -3,6 +3,10 @@
 #
 # see: dh_installdeb(1)
 
+if [ "x${DEBUG}" = x1 ]; then 
+  set -x
+fi
+
 set -e
 
 # summary of how this script can be called:
