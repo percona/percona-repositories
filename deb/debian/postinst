@@ -20,6 +20,7 @@ set -e
 
 case "$1" in
     configure)
+      /usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring.gpg > /dev/null 2>&1
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
