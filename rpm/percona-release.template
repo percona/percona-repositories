@@ -1,0 +1,41 @@
+Name:         percona-release
+Version:      @@VERSION@@ 
+Release:      1
+Summary:      Package to install Percona GPG key and YUM repo
+License:      GPL-3.0+
+BuildArch:    noarch
+BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{arch}
+Source0:      percona-release.repo
+Source1:      RPM-GPG-KEY-percona
+Requires:     /usr/bin/gpg
+
+%description
+%{name} package contains Percona GPG public key and Percona repository configuration for YUM
+
+%clean
+%{__rm} -rf %{buildroot}
+
+%prep
+
+%build
+
+%install
+%{__rm} -rf %{buildroot}
+%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-percona
+%{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
+
+%files
+%defattr(-, root, root, 0644)
+%config %{_sysconfdir}/yum.repos.d/%{SOURCE0}
+%{_sysconfdir}/pki/rpm-gpg/%{SOURCE1}
+%pubkey %{SOURCE1}
+
+%changelog
+* Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-1
+- Reworked old rpm from Alexander Kuzminsky
+
+
+
+
+
+
