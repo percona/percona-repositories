@@ -1,0 +1,55 @@
+########################################
+# Percona releases and sources, stable #
+########################################
+#[percona-release-$basearch]
+#[percona-release-$noarch]
+#[percona-release-source]
+
+####################################################################
+# Testing & pre-release packages. You don't need it for production #
+####################################################################
+[percona-testing-$basearch]
+name = Percona-Testing YUM repository - $basearch
+baseurl = http://repo.percona.com/testing/$releasever/RPMS/$basearch
+enabled = 0
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
+[percona-testing-noarch]
+name = Percona-Testing YUM repository - noarch
+baseurl = http://repo.percona.com/testing/$releasever/RPMS/noarch
+enabled = 0
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
+[percona-testing-source]
+name = Percona-Testing YUM repository - Source packages
+baseurl = http://repo.percona.com/experimental/$releasever/SRPMS
+enabled = 0
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
+############################################
+# Experimental packages, use with caution! #
+############################################
+[percona-experimental-$basearch]
+name = Percona-Experimental YUM repository - $basearch
+baseurl = http://repo.percona.com/experimental/$releasever/RPMS/$basearch
+enabled = 0
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
+[percona-experimental-noarch]
+name = Percona-Experimental YUM repository - noarch
+baseurl = http://repo.percona.com/experimental/$releasever/RPMS/noarch
+enabled = 0
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
+[percona-experimental-source]
+name = Percona-Experimental YUM repository - Source packages
+baseurl = http://repo.percona.com/experimental/$releasever/SRPMS
+enabled = 0
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
