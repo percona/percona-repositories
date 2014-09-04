@@ -19,6 +19,7 @@ Requires:     /usr/bin/gpg
 %prep
 
 %build
+%{__cp} -f ${SOURCE1} %{builddir}
 
 %install
 %{__rm} -rf %{buildroot}
@@ -29,6 +30,7 @@ Requires:     /usr/bin/gpg
 %defattr(-, root, root, 0644)
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%doc RPM-GPG-KEY-Percona
 %pubkey RPM-GPG-KEY-Percona
 
 %changelog
