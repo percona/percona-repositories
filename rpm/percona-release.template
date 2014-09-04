@@ -3,6 +3,7 @@ Version:      @@VERSION@@
 Release:      1
 Summary:      Package to install Percona GPG key and YUM repo
 License:      GPL-3.0+
+Group:        System Environment/Base
 BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{arch}
 Source0:      percona-release.repo
