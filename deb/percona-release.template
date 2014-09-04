@@ -4,12 +4,12 @@
 deb http://repo.percona.com/apt @@VERSION@@ main
 deb-src http://repo.percona.com/apt @@VERSION@@ main
 #
-# Testing pkg source for pre-release packages
+# Testing & pre-release packages
 #
 #deb http://repo.percona.com/apt @@VERSION@@ testing
 #deb-src http://repo.percona.com/apt @@VERSION@@ testing
 #
-# Experimental pkg source, use with caution!
+# Experimental packages, use with caution!
 #
 #deb http://repo.percona.com/apt @@VERSION@@ experimental
 #deb-src http://repo.percona.com/apt @@VERSION@@ experimental
