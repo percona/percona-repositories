@@ -11,5 +11,5 @@ Vcs-Git: git://github.com/percona/percona-repositories.git
 Package: percona-release
 Architecture: all
 Depends: ${misc:Depends}
-Description: Package to install Percona gpg key and apt repo
+Description: Package to install Percona gpg key and APT repo
 
