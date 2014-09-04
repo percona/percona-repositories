@@ -22,14 +22,14 @@ Requires:     /usr/bin/gpg
 
 %install
 %{__rm} -rf %{buildroot}
-%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-percona
+%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 %{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
 
 %files
 %defattr(-, root, root, 0644)
-%config %{_sysconfdir}/yum.repos.d/%{SOURCE0}
-%{_sysconfdir}/pki/rpm-gpg/%{SOURCE1}
-%pubkey %{SOURCE1}
+%config %{_sysconfdir}/yum.repos.d/percona-release.repo
+%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%pubkey RPM-GPG-KEY-Percona
 
 %changelog
 * Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-1
