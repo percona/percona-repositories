@@ -23,8 +23,8 @@ Requires:     /usr/bin/gpg
 
 %install
 %{__rm} -rf %{buildroot}
-%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
-%{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
+%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
+%{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 
 %files
 %defattr(-, root, root, 0644)
