@@ -34,11 +34,13 @@ Obsoletes:    percona-testing
 %pubkey RPM-GPG-KEY-Percona
 
 %changelog
-* Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-1
-- Reworked old rpm from Alexander Kuzminsky
 
 * Thu Sep 18 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-2
 - Fixed bug #1371003 (removed /usr/bin/gpg dependency)
+
+* Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-1
+- Reworked old rpm from Alexander Kuzminsky
+
 
 
 
