@@ -18,7 +18,7 @@ gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona
 [percona-release-source]
 name = Percona-Release YUM repository - Source packages
 baseurl = http://repo.percona.com/release/$releasever/SRPMS
-enabled = 1
+enabled = 0
 gpgcheck = 1
 gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Percona 
 
