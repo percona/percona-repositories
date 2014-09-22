@@ -1,6 +1,6 @@
 Name:         percona-release
 Version:      @@VERSION@@ 
-Release:      2
+Release:      3
 Summary:      Package to install Percona GPG key and YUM repo
 License:      GPL-3.0+
 Group:        System Environment/Base
