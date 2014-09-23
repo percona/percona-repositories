@@ -1,6 +1,6 @@
 Name:         percona-release
 Version:      @@VERSION@@ 
-Release:      3
+Release:      @@RELEASE@@
 Summary:      Package to install Percona GPG key and YUM repo
 License:      GPL-3.0+
 Group:        System Environment/Base
@@ -34,6 +34,9 @@ Obsoletes:    percona-testing
 %pubkey RPM-GPG-KEY-Percona
 
 %changelog
+
+* Tue Sep 23 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-3
+- disabled source repo by default
 
 * Thu Sep 18 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-2
 - Fixed bug #1371003 (removed /usr/bin/gpg dependency)
