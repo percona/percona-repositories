@@ -49,7 +49,9 @@ Obsoletes:    percona-testing
 %defattr(-, root, root, 0644)
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%if 0%{?rhel} >= 6
 %{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+%endif
 
 %doc RPM-GPG-KEY-Percona
 %if 0%{?rhel} >= 6
