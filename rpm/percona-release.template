@@ -1,6 +1,12 @@
+%if 0%{?rhel} < 6
+%define dist .el5
+%else
+%define dist nil
+%endif
+
 Name:         percona-release
 Version:      @@VERSION@@
-Release:      @@RELEASE@@
+Release:      @@RELEASE@@%{dist}
 Summary:      Package to install Percona GPG key and YUM repo
 License:      GPL-3.0+
 Group:        System Environment/Base
