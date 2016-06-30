@@ -1,7 +1,7 @@
 %if 0%{?rhel} < 6
 %define dist .el5
 %else
-%define dist nil
+%define dist %{nil}
 %endif
 
 Name:         percona-release
