@@ -1,5 +1,5 @@
 Name:         percona-release
-Version:      @@VERSION@@ 
+Version:      @@VERSION@@
 Release:      @@RELEASE@@
 Summary:      Package to install Percona GPG key and YUM repo
 License:      GPL-3.0+
@@ -8,10 +8,11 @@ BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
 Source0:      percona-release.repo
 Source1:      RPM-GPG-KEY-Percona
+Source2:      PERCONA-PACKAGING-KEY
 Obsoletes:    percona-testing
 
 %description
-%{name} package contains Percona GPG public key and Percona repository configuration for YUM
+%{name} package contains Percona GPG public keys and Percona repository configuration for YUM
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -25,23 +26,32 @@ Obsoletes:    percona-testing
 %{__rm} -rf %{buildroot}
 %{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
 %{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%{__install} -D -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 %files
 %defattr(-, root, root, 0644)
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+
 %doc RPM-GPG-KEY-Percona
+%doc PERCONA-PACKAGING-KEY
+
 %pubkey RPM-GPG-KEY-Percona
+%pubkey PERCONA-PACKAGING-KEY
 
 %changelog
 
-* Tue Sep 23 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-3
-- disabled source repo by default
+* Thu Jun 30 2016 Alexey Bychko <alexey.bychko@percona.com> - 0.1-4
+- Added new gpg key (SHA512)
 
-* Thu Sep 18 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-2
+* Tue Sep 23 2014 Alexey Bychko <alexey.bychko@percona.com> - 0.1-3
+- Disabled source repo by default
+
+* Thu Sep 18 2014 Alexey Bychko <alexey.bychko@percona.com> - 0.1-2
 - Fixed bug #1371003 (removed /usr/bin/gpg dependency)
 
-* Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com.com> - 0.1-1
+* Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com> - 0.1-1
 - Reworked old rpm from Alexander Kuzminsky
 
 
