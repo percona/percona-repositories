@@ -1,12 +1,6 @@
-%if 0%{?rhel} < 6
-%define dist .el5
-%else
-%define dist %{nil}
-%endif
-
 Name:         percona-release
 Version:      @@VERSION@@
-Release:      @@RELEASE@@%{dist}
+Release:      @@RELEASE@@
 Summary:      Package to install Percona GPG key and YUM repo
 License:      GPL-3.0+
 Group:        System Environment/Base
@@ -14,10 +8,6 @@ BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
 Source0:      percona-release.repo
 Source1:      RPM-GPG-KEY-Percona
-
-%if 0%{?rhel} >= 6
-Source2:      PERCONA-PACKAGING-KEY
-%endif
 
 Obsoletes:    percona-testing
 
@@ -32,36 +22,20 @@ Obsoletes:    percona-testing
 %build
 %{__cp} -f %{SOURCE1} %{_builddir}
 
-%if 0%{?rhel} >= 6
-%{__cp} -f %{SOURCE2} %{_builddir}
-%endif
 
 %install
 %{__rm} -rf %{buildroot}
 %{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
 %{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 
-%if 0%{?rhel} >= 6
-%{__install} -D -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
-%endif
-
 %files
 %defattr(-, root, root, 0644)
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
-%if 0%{?rhel} >= 6
-%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
-%endif
 
 %doc RPM-GPG-KEY-Percona
-%if 0%{?rhel} >= 6
-%doc PERCONA-PACKAGING-KEY
-%endif
 
 %pubkey RPM-GPG-KEY-Percona
-%if 0%{?rhel} >= 6
-%pubkey PERCONA-PACKAGING-KEY
-%endif
 
 %changelog
 
