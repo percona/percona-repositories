@@ -40,7 +40,10 @@ Obsoletes:    percona-testing
 %doc RPM-GPG-KEY-Percona
 
 %pubkey PERCONA-PACKAGING-KEY
-%pubkey RPM-GPG-KEY-Percona
+
+%post
+rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+
 
 %changelog
 
