@@ -7,7 +7,8 @@ Group:        System Environment/Base
 BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
 Source0:      percona-release.repo
-Source1:      RPM-GPG-KEY-Percona
+Source1:      PERCONA-PACKAGING-KEY
+Source2:      RPM-GPG-KEY-Percona
 
 Obsoletes:    percona-testing
 
@@ -21,23 +22,30 @@ Obsoletes:    percona-testing
 
 %build
 %{__cp} -f %{SOURCE1} %{_builddir}
-
+%{__cp} -f %{SOURCE2} %{_builddir}
 
 %install
 %{__rm} -rf %{buildroot}
 %{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
-%{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+%{__install} -D -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 
 %files
 %defattr(-, root, root, 0644)
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
+%doc PERCONA-PACKAGING-KEY
 %doc RPM-GPG-KEY-Percona
 
+%pubkey PERCONA-PACKAGING-KEY
 %pubkey RPM-GPG-KEY-Percona
 
 %changelog
+
+* Wed Sep 06 2017 Alexey Bychko <alexey.bychko@percona.com> - 0.1-5
+- Changed description and email for keys, rpm refreshed
 
 * Thu Jun 30 2016 Alexey Bychko <alexey.bychko@percona.com> - 0.1-4
 - Added new gpg key (SHA512)
