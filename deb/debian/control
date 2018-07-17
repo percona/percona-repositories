@@ -5,8 +5,8 @@ Maintainer: Percona Development Team <info@percona.com>
 Uploaders: Alexey Bychko <alexey.bychko@percona.com>
 Build-Depends: debhelper, lsb-release
 Standards-Version: 3.9.2
-Homepage: http://repo.percona.com
-Vcs-Git: git://github.com/percona/percona-repositories.git
+Homepage: https://www.percona.com/downloads/percona-release
+Vcs-Git: https://github.com/percona/percona-repositories.git
 
 Package: percona-release
 Architecture: all
