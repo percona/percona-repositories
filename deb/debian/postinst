@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 # postinst script for percona-release
 #
 # see: dh_installdeb(1)
+SUPRESSOR="> /dev/null 2>&1"
 
-if [ "x${DEBUG}" = x1 ]; then 
+if [ "${PERCONA_DEBUG}" = "1" ]; then
   set -x
+  SUPRESSOR=""
 fi
 
 set -e
@@ -24,8 +26,8 @@ set -e
 
 case "$1" in
     configure)
-      /usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring.gpg > /dev/null 2>&1
-      /usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring2.gpg > /dev/null 2>&1
+      eval "/usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring.gpg  ${SUPRESSOR}"
+      eval "/usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring2.gpg ${SUPRESSOR}"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
