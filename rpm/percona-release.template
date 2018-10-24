@@ -47,6 +47,9 @@ rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 
 %changelog
 
+* Wed Oct 24 2018 Alexey Bychko <alexey.bychko@percona.com> - 0.1-8
+- Changed rpm keys, added new paths for repositories
+
 * Wed Sep 06 2017 Alexey Bychko <alexey.bychko@percona.com> - 0.1-5
 - Changed description and email for keys, rpm refreshed
 
