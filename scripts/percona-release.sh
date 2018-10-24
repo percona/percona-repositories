@@ -1,11 +1,9 @@
 #!/bin/bash
 #
-#if [[ $(id -u) -gt 0 ]]; then
-#  echo "Please run $(basename ${0}) as root!"
-#  exit 1
-#fi
-#
-#set -o xtrace
+if [[ $(id -u) -gt 0 ]]; then
+  echo "Please run $(basename ${0}) as root!"
+  exit 1
+fi
 #
 COMMANDS="list enable disable"
 REPOSITORIES="percona ps8x pmm-client"
@@ -13,8 +11,6 @@ COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 #
 MODIFIED=NO
-
-
 #
 if [[ -f /etc/redhat-release ]]; then
   LOCATION=/etc/yum.repos.d
@@ -54,7 +50,7 @@ function list_repositories {
     for _component in ${COMPONENTS}; do
       REPOFILE=${LOCATION}/${_repository}-${_component}.${EXT}
       if [[ -f ${REPOFILE} ]]; then
-        STATUS=INSTALLED
+        STATUS="-> IS INSTALLED"
       else
         STATUS="NOT INSTALLED"
       fi
@@ -71,7 +67,6 @@ function create_yum_repo {
 function create_apt_repo {
   REPOFILE=${LOCATION}/${1}-${2}.${EXT}
   REPOURL="${URL}/${1}/apt ${CODENAME}"
-  #echo "deb ${REPOURL}" > ${REPOFILE}
   if [[ ${2} = release ]]; then
     _component=main
     echo "deb ${REPOURL} ${_component}" > ${REPOFILE}
