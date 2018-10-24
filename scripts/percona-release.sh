@@ -50,11 +50,13 @@ function list_repositories {
     for _component in ${COMPONENTS}; do
       REPOFILE=${LOCATION}/${_repository}-${_component}.${EXT}
       if [[ -f ${REPOFILE} ]]; then
-        STATUS="-> IS INSTALLED"
+        STATUS="IS INSTALLED"
+        PREFIX="(+)"
       else
-        STATUS="NOT INSTALLED"
+        STATUS="IS NOT INSTALLED"
+        PREFIX="-"
       fi
-      echo -e ${_repository}-${_component}:   ${STATUS}
+      echo "${PREFIX} ${_repository}-${_component}: ${STATUS}"
     done
       echo
   done
