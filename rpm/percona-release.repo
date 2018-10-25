@@ -1,7 +1,6 @@
 #
 # This repo is managed by "percona-release.sh" script, do not edit!
 #
-
 [percona-release-$basearch]
 name = Percona release-$basearch YUM repository for $basearch
 baseurl = http://repo.percona.com/percona/yum/release/$releasever/RPMS/$basearch

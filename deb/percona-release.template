@@ -1,15 +1,5 @@
 #
-# Percona releases, stable
+# This repo is managed by "percona-release.sh" script, do not edit!
 #
-deb http://repo.percona.com/percona/apt @@VERSION@@ main
-deb-src http://repo.percona.com/percona/apt @@VERSION@@ main
-#
-# Testing & pre-release packages
-#
-#deb http://repo.percona.com/percona/apt @@VERSION@@ testing
-#deb-src http://repo.percona.com/percona/apt @@VERSION@@ testing
-#
-# Experimental packages, use with caution!
-#
-#deb http://repo.percona.com/percona/apt @@VERSION@@ experimental
-#deb-src http://repo.percona.com/percona/apt @@VERSION@@ experimental
+deb http://repo.percona.com/percona/apt xenial main
+deb-src http://repo.percona.com/percona/apt xenial main
