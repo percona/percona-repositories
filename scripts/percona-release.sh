@@ -6,7 +6,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 COMMANDS="list enable disable"
-REPOSITORIES="percona ps8x pmm-client"
+REPOSITORIES="percona ps-8x pmm-client"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 #
@@ -36,7 +36,7 @@ function show_help {
   echo " Usage:    $(basename ${0}) list | enable | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
-  echo "  Example: $(basename ${0}) enable ps8x testing"
+  echo "  Example: $(basename ${0}) enable ps-8x testing"
   echo " -> Available commands:     ${COMMANDS}"
   echo " -> Available repositories: ${REPOSITORIES}"
   echo " -> Available components:   ${COMPONENTS}"
