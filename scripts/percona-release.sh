@@ -1,13 +1,12 @@
 #!/bin/bash
 #
-#set -o xtrace
 #
 if [[ $(id -u) -gt 0 ]]; then
   echo "Please run $(basename ${0}) as root!"
   exit 1
 fi
 #
-COMMANDS="list enable disable"
+COMMANDS="list enable enable-only disable"
 REPOSITORIES="percona ps-8x"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
@@ -40,6 +39,7 @@ function show_help {
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
   echo "  Example: $(basename ${0}) enable ps-8x testing"
+  echo "  Example: $(basename ${0}) enable-only percona testing"
   echo " -> Available commands:     ${COMMANDS}"
   echo " -> Available repositories: ${REPOSITORIES}"
   echo " -> Available components:   ${COMPONENTS}"
@@ -101,26 +101,30 @@ function create_apt_repo {
 }
 #
 function enable_component {
-  if [[ -z ${2} ]]; then
-    _component=release
+  if [[ ${2} = all ]]; then
+    dCOMP=${COMPONENTS}
+  elif [[ -z ${2} ]]; then
+    dCOMP=release
   else
-    _component=${2}
+    dCOMP=${2}
   fi
 #
-  if [[ ${PKGTOOL} = yum ]]; then
-    create_yum_repo ${1} ${_component}
-  elif [[ ${PKGTOOL} = apt ]]; then
-    create_apt_repo ${1} ${_component}
-  fi
+  for _component in ${dCOMP}; do
+    if [[ ${PKGTOOL} = yum ]]; then
+      create_yum_repo ${1} ${_component}
+    elif [[ ${PKGTOOL} = apt ]]; then
+      create_apt_repo ${1} ${_component}
+    fi
+  done
 }
 #
 function disable_component {
   if [[ ${2} = all ]] || [[ -z ${2} ]]; then
     for _component in ${COMPONENTS}; do
-      rm -fv ${LOCATION}/${1}-${_component}.${EXT}
+      rm -f ${LOCATION}/${1}-${_component}.${EXT}
     done
   else
-      rm -fv ${LOCATION}/${1}-${2}.${EXT}
+      rm -f ${LOCATION}/${1}-${2}.${EXT}
   fi
 }
 #
@@ -176,6 +180,11 @@ case $1 in
     ;;
   enable )
     shift
+    enable_repository $@
+    ;;
+  enable-only )
+    shift
+    disable_repository all all
     enable_repository $@
     ;;
   disable )
