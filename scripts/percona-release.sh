@@ -67,7 +67,6 @@ function list_repositories {
 #
 function create_yum_repo {
   REPOFILE=${LOCATION}/${1}-${2}.${EXT}
-  cat /dev/null > ${REPOFILE}
   for _key in "\$basearch" noarch sources; do
     echo "[${1}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = Percona ${2}-${_key} YUM repository for \$basearch" >> ${REPOFILE}
@@ -93,10 +92,10 @@ function create_apt_repo {
   REPOURL="${URL}/${1}/apt ${CODENAME}"
   if [[ ${2} = release ]]; then
     _component=main
-    echo "deb ${REPOURL} ${_component}" > ${REPOFILE}
+    echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
     echo "deb-src ${REPOURL} ${_component}" >> ${REPOFILE}
   else
-    echo "deb ${REPOURL} ${_component}" > ${REPOFILE}
+    echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
   fi
 }
 #
@@ -110,6 +109,10 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
+    REPOFILE=${LOCATION}/${1}-${_component}.${EXT}
+    echo "#" > ${REPOFILE}
+    echo "# This repo is managed by \"$(basename ${0})\" script, do not edit!" >> ${REPOFILE}
+    echo "#" >> ${REPOFILE}
     if [[ ${PKGTOOL} = yum ]]; then
       create_yum_repo ${1} ${_component}
     elif [[ ${PKGTOOL} = apt ]]; then

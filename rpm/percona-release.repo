@@ -1,20 +1,24 @@
+#
+# This repo is managed by "percona-release.sh" script, do not edit!
+#
+
 [percona-release-$basearch]
-name = Percona-Release YUM repository - $basearch
+name = Percona release-$basearch YUM repository for $basearch
 baseurl = http://repo.percona.com/percona/yum/release/$releasever/RPMS/$basearch
-enabled = 1
+enable = 1
 gpgcheck = 1
 gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 [percona-release-noarch]
-name = Percona-Release YUM repository - noarch
+name = Percona release-noarch YUM repository for $basearch
 baseurl = http://repo.percona.com/percona/yum/release/$releasever/RPMS/noarch
-enabled = 1
+enable = 1
 gpgcheck = 1
 gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-[percona-release-source]
-name = Percona-Release YUM repository - Source packages
+[percona-release-sources]
+name = Percona release-sources YUM repository for $basearch
 baseurl = http://repo.percona.com/percona/yum/release/$releasever/SRPMS
-enabled = 0
+enable = 0
 gpgcheck = 1
 gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
