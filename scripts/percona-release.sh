@@ -35,15 +35,16 @@ function show_message {
 }
 #
 function show_help {
-  echo " Usage:    $(basename ${0}) list | enable | disable (<REPO> | all) [COMPONENT | all]"
+  echo " Usage:    $(basename ${0}) list | enable | enable-only | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
+  echo "  Example: $(basename ${0}) enable all testing"
   echo "  Example: $(basename ${0}) enable ps-8x testing"
   echo "  Example: $(basename ${0}) enable-only percona testing"
   echo " -> Available commands:     ${COMMANDS}"
   echo " -> Available repositories: ${REPOSITORIES}"
   echo " -> Available components:   ${COMPONENTS}"
-  echo "=> Please see percona-release page for complete help: https://percona.com/percona-release"
+  echo "=> Please see percona-release page for help: https://www.percona.com/downloads/percona-release/"
 }
 #
 function list_repositories {
