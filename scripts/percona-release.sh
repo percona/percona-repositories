@@ -8,7 +8,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 COMMANDS="list enable disable"
-REPOSITORIES="percona ps-8x pmm-client"
+REPOSITORIES="percona ps-8x"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 #
@@ -153,7 +153,7 @@ if [[ ${#} -lt 1 ]] || [[ ${#} -gt 3 ]]; then
 fi
 #
 if [[ ${COMMANDS} != *${1}* ]]; then
-  echo "ERROR: Unknown action: ${1}"
+  echo "ERROR: Unknown action specified: ${1}"
   show_help
   exit 2
 fi
