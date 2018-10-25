@@ -164,6 +164,12 @@ if [[ ${REPOSITORIES} != *${2}* ]] && [[ ${2} != all ]]; then
   exit 2
 fi
 #
+if [[ -n ${3} ]] && [[ ${COMPONENTS} != *${3}* ]] && [[ ${3} != all ]]; then
+  echo "ERROR: Unknown component specification: ${3}"
+  show_help
+  exit 2
+fi
+#
 case $1 in
   list )
     list_repositories
