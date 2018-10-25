@@ -46,6 +46,8 @@ Obsoletes:    percona-testing
 
 %post
 rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+echo " * This package contains percona-release utility to simplify repo management"
+echo " * Please use it instead of manual editing"
 
 %changelog
 
