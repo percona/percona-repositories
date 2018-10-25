@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+#set -o xtrace
+#
 if [[ $(id -u) -gt 0 ]]; then
   echo "Please run $(basename ${0}) as root!"
   exit 1
@@ -16,6 +18,7 @@ if [[ -f /etc/redhat-release ]]; then
   LOCATION=/etc/yum.repos.d
   EXT=repo
   PKGTOOL=yum
+  RHVER=$(rpm --eval %rhel)
 elif [[ -f /etc/debian_version ]]; then
   LOCATION=/etc/apt/sources.list.d
   EXT=list
@@ -51,7 +54,7 @@ function list_repositories {
       REPOFILE=${LOCATION}/${_repository}-${_component}.${EXT}
       if [[ -f ${REPOFILE} ]]; then
         STATUS="IS INSTALLED"
-        PREFIX="(+)"
+        PREFIX="+++"
       else
         STATUS="IS NOT INSTALLED"
         PREFIX="-"
@@ -63,7 +66,26 @@ function list_repositories {
 }
 #
 function create_yum_repo {
-  echo create_yum_repo
+  REPOFILE=${LOCATION}/${1}-${2}.${EXT}
+  cat /dev/null > ${REPOFILE}
+  for _key in "\$basearch" noarch sources; do
+    echo "[${1}-${2}-${_key}]" >> ${REPOFILE}
+    echo "name = Percona ${2}-${_key} YUM repository for \$basearch" >> ${REPOFILE}
+    if [[ ${_key} = sources ]]; then
+      DIR=SRPMS
+      rPATH=""
+      ENABLE=0
+    else
+      DIR=RPMS
+      rPATH="/${_key}"
+      ENABLE=1
+    fi
+    echo "baseurl = ${URL}/${1}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
+    echo "enable = ${ENABLE}" >> ${REPOFILE}
+    echo "gpgcheck = 1" >> ${REPOFILE}
+    echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
+    echo >> ${REPOFILE}
+  done
 }
 #
 function create_apt_repo {
