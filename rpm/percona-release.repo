@@ -1,5 +1,5 @@
 #
-# This repo is managed by "percona-release.sh" script, do not edit!
+# This repo is managed by "percona-release" utility, do not edit!
 #
 [percona-release-$basearch]
 name = Percona release-$basearch YUM repository for $basearch

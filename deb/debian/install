@@ -1,4 +1,4 @@
 percona-keyring.gpg   etc/apt/trusted.gpg.d/
-percona-keyring2.gpg   etc/apt/trusted.gpg.d/
+percona-keyring2.gpg  etc/apt/trusted.gpg.d/
 percona-release.list  etc/apt/sources.list.d/
-
+percona-release       usr/bin/

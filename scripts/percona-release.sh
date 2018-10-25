@@ -111,7 +111,7 @@ function enable_component {
   for _component in ${dCOMP}; do
     REPOFILE=${LOCATION}/${1}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
-    echo "# This repo is managed by \"$(basename ${0})\" script, do not edit!" >> ${REPOFILE}
+    echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
     echo "#" >> ${REPOFILE}
     if [[ ${PKGTOOL} = yum ]]; then
       create_yum_repo ${1} ${_component}

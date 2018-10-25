@@ -11,8 +11,6 @@ Source1:      PERCONA-PACKAGING-KEY
 Source2:      RPM-GPG-KEY-Percona
 Source3:      percona-release.sh
 
-Obsoletes:    percona-testing
-
 %description
 %{name} package contains Percona GPG public keys and Percona repository configuration for YUM
 
@@ -37,12 +35,14 @@ Obsoletes:    percona-testing
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 %{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+
 %attr(750, root, root) %{_bindir}/percona-release
 
 %doc PERCONA-PACKAGING-KEY
 %doc RPM-GPG-KEY-Percona
-
 %pubkey PERCONA-PACKAGING-KEY
+
+
 
 %post
 rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
@@ -50,7 +50,6 @@ echo " * This package contains percona-release utility to simplify repo manageme
 echo " * Please use it instead of manual editing"
 
 %changelog
-
 * Wed Oct 24 2018 Alexey Bychko <alexey.bychko@percona.com> - 0.1-8
 - Changed rpm keys, added new paths for repositories
 - Added percona-release shell utility
@@ -69,7 +68,3 @@ echo " * Please use it instead of manual editing"
 
 * Thu Sep 04 2014 Alexey Bychko <alexey.bychko@percona.com> - 0.1-1
 - Reworked old rpm from Alexander Kuzminsky
-
-
-
-
