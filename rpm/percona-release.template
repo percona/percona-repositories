@@ -9,6 +9,7 @@ BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
 Source0:      percona-release.repo
 Source1:      PERCONA-PACKAGING-KEY
 Source2:      RPM-GPG-KEY-Percona
+Source3:      percona-release.sh
 
 Obsoletes:    percona-testing
 
@@ -29,12 +30,14 @@ Obsoletes:    percona-testing
 %{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
 %{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 %{__install} -D -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%{__install} -D -m 0750 %{SOURCE3} %{buildroot}%{_bindir}/percona-release
 
 %files
 %defattr(-, root, root, 0644)
 %config %{_sysconfdir}/yum.repos.d/percona-release.repo
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 %{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+%attr(750, root, root) %{_bindir}/percona-release
 
 %doc PERCONA-PACKAGING-KEY
 %doc RPM-GPG-KEY-Percona
@@ -43,7 +46,6 @@ Obsoletes:    percona-testing
 
 %post
 rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
-
 
 %changelog
 
