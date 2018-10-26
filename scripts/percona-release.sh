@@ -7,7 +7,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 COMMANDS="list enable enable-only disable"
-REPOSITORIES="percona ps-8x"
+REPOSITORIES="percona ps-80"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 #
@@ -17,7 +17,6 @@ if [[ -f /etc/redhat-release ]]; then
   LOCATION=/etc/yum.repos.d
   EXT=repo
   PKGTOOL=yum
-  RHVER=$(rpm --eval %rhel)
 elif [[ -f /etc/debian_version ]]; then
   LOCATION=/etc/apt/sources.list.d
   EXT=list
