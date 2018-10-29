@@ -29,7 +29,7 @@ else
 fi
 #
 function show_message {
-  if [[ ${MODIFIED} = YES ]]; then
+  if [[ ${MODIFIED} = YES ]] && [[ ${PKGTOOL} = apt ]]; then
     echo "==> Please run \"${PKGTOOL} update\" to apply changes"
   fi
 }
