@@ -29,6 +29,7 @@ else
 fi
 #
 function show_message {
+  echo "<*> All done!"
   if [[ ${MODIFIED} = YES ]] && [[ ${PKGTOOL} = apt ]]; then
     echo "==> Please run \"${PKGTOOL} update\" to apply changes"
   fi
@@ -123,12 +124,14 @@ function enable_component {
 }
 #
 function disable_component {
+  local _repo=${1}
+  [[ ${_repo} != percona ]] && _repo=percona-${1}
   if [[ ${2} = all ]] || [[ -z ${2} ]]; then
     for _component in ${COMPONENTS}; do
-      mv -f ${LOCATION}/${1}-${_component}.${EXT} ${LOCATION}/${1}-${_component}.${EXT}.bak
+      mv -f ${LOCATION}/${_repo}-${_component}.${EXT} ${LOCATION}/${_repo}-${_component}.${EXT}.bak 2>/dev/null
     done
   else
-      mv -f ${LOCATION}/${1}-${2}.${EXT} ${LOCATION}/${1}-${2}.${EXT}.bak
+      mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
   fi
 }
 #
