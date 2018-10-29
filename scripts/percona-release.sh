@@ -38,7 +38,7 @@ function show_help {
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
   echo "  Example: $(basename ${0}) enable all testing"
-  echo "  Example: $(basename ${0}) enable ps-8x testing"
+  echo "  Example: $(basename ${0}) enable ps-80 testing"
   echo "  Example: $(basename ${0}) enable-only percona testing"
   echo " -> Available commands:     ${COMMANDS}"
   echo " -> Available repositories: ${REPOSITORIES}"
