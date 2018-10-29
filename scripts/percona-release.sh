@@ -43,7 +43,7 @@ function show_help {
   echo " -> Available commands:     ${COMMANDS}"
   echo " -> Available repositories: ${REPOSITORIES}"
   echo " -> Available components:   ${COMPONENTS}"
-  echo "=> Please see percona-release page for help: https://www.percona.com/downloads/percona-release/"
+  echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/index.html"
 }
 #
 function list_repositories {
