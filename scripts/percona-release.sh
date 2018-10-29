@@ -125,10 +125,10 @@ function enable_component {
 function disable_component {
   if [[ ${2} = all ]] || [[ -z ${2} ]]; then
     for _component in ${COMPONENTS}; do
-      rm -f ${LOCATION}/${1}-${_component}.${EXT}
+      mv -f ${LOCATION}/${1}-${_component}.${EXT} ${LOCATION}/${1}-${_component}.${EXT}.bak
     done
   else
-      rm -f ${LOCATION}/${1}-${2}.${EXT}
+      mv -f ${LOCATION}/${1}-${2}.${EXT} ${LOCATION}/${1}-${2}.${EXT}.bak
   fi
 }
 #
