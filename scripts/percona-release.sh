@@ -12,6 +12,7 @@ COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 #
 MODIFIED=NO
+REPOFILE=""
 #
 if [[ -f /etc/redhat-release ]]; then
   LOCATION=/etc/yum.repos.d
@@ -66,7 +67,6 @@ function list_repositories {
 }
 #
 function create_yum_repo {
-  REPOFILE=${LOCATION}/${1}-${2}.${EXT}
   for _key in "\$basearch" noarch sources; do
     echo "[${1}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = Percona ${2}-${_key} YUM repository for \$basearch" >> ${REPOFILE}
@@ -88,7 +88,6 @@ function create_yum_repo {
 }
 #
 function create_apt_repo {
-  REPOFILE=${LOCATION}/${1}-${2}.${EXT}
   REPOURL="${URL}/${1}/apt ${CODENAME}"
   if [[ ${2} = release ]]; then
     _component=main
@@ -100,6 +99,8 @@ function create_apt_repo {
 }
 #
 function enable_component {
+  local _repo=${1}
+  [[ ${_repo} != percona ]] && _repo=percona-${1}
   if [[ ${2} = all ]]; then
     dCOMP=${COMPONENTS}
   elif [[ -z ${2} ]]; then
@@ -109,7 +110,7 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
-    REPOFILE=${LOCATION}/${1}-${_component}.${EXT}
+    REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
     echo "#" >> ${REPOFILE}
@@ -153,7 +154,7 @@ function disable_repository {
   MODIFIED=YES
 }
 #
-if [[ ${#} -lt 1 ]] || [[ ${#} -gt 3 ]]; then
+if [[ ${#} -lt 2 ]] || [[ ${#} -gt 3 ]]; then
   echo "ERROR: Wrong number of parameters: ${#}"
   show_help
   exit 2
