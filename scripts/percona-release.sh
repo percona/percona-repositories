@@ -28,6 +28,26 @@ else
   exit 1
 fi
 #
+function check_specified_repo {
+  local found=NO
+  [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
+  for _repo in all ${REPOSITORIES}; do
+    [[ ${_repo} = ${1} ]] && found=YES
+  done
+  [[ ${found} = NO ]] && echo "ERROR: Unknown repository specification: ${1}" && show_help && exit 2
+}
+#
+function check_specified_component {
+  local message=""
+  local found=NO
+  [[ -z ${1} ]] && echo "<!> No component specified, assuming \"release\"" && return
+  for _component in all ${COMPONENTS}; do
+    [[ ${_component} = ${1} ]] && found=YES
+  done
+  [[ ${found} = NO ]] && message="ERROR: Unknown component specification: ${1}"
+  [[ -n ${message} ]] && echo ${message} && show_help && exit 2
+}
+#
 function show_message {
   echo "<*> All done!"
   if [[ ${MODIFIED} = YES ]] && [[ ${PKGTOOL} = apt ]]; then
@@ -36,15 +56,21 @@ function show_message {
 }
 #
 function show_help {
-  echo " Usage:    $(basename ${0}) list | enable | enable-only | disable (<REPO> | all) [COMPONENT | all]"
+  echo
+  echo "Usage:    $(basename ${0}) list | enable | enable-only | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
   echo "  Example: $(basename ${0}) enable all testing"
   echo "  Example: $(basename ${0}) enable ps-80 testing"
   echo "  Example: $(basename ${0}) enable-only percona testing"
-  echo " -> Available commands:     ${COMMANDS}"
-  echo " -> Available repositories: ${REPOSITORIES}"
-  echo " -> Available components:   ${COMPONENTS}"
+  echo
+  echo "Short specification:"
+  echo "  Example: $(basename ${0}) enable  <REPO> IS EQUAL to enable  <REPO> release"
+  echo "  Example: $(basename ${0}) disable <REPO> IS EQUAL to disable <REPO> all"
+  echo
+  echo "-> Available commands:     ${COMMANDS}"
+  echo "-> Available repositories: ${REPOSITORIES}"
+  echo "-> Available components:   ${COMPONENTS}"
   echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/index.html"
 }
 #
@@ -102,6 +128,7 @@ function create_apt_repo {
 function enable_component {
   local _repo=${1}
   [[ ${_repo} != percona ]] && _repo=percona-${1}
+  check_specified_component ${2}
   if [[ ${2} = all ]]; then
     dCOMP=${COMPONENTS}
   elif [[ -z ${2} ]]; then
@@ -131,37 +158,30 @@ function disable_component {
       mv -f ${LOCATION}/${_repo}-${_component}.${EXT} ${LOCATION}/${_repo}-${_component}.${EXT}.bak 2>/dev/null
     done
   else
-      mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
+    check_specified_component ${2}
+    mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
   fi
 }
 #
 function enable_repository {
-    if [[ ${1} = all ]]; then
-    for _repository in ${REPOSITORIES}; do
-      enable_component ${_repository} ${2}
-    done
-  else
-      enable_component ${1} ${2}
-  fi
+  local _repos=${1}
+  [[ ${1} = all ]] && _repos=${REPOSITORIES}
+  check_specified_repo ${1}
+  for _repository in ${_repos}; do
+    enable_component ${_repository} ${2}
+  done
   MODIFIED=YES
 }
 #
 function disable_repository {
-  if [[ ${1} = all ]]; then
-    for _repository in ${REPOSITORIES}; do
-      disable_component ${_repository} ${2}
-    done
-  else
-      disable_component ${1} ${2}
-  fi
+  local _repos=${1}
+  [[ ${1} = all ]] && _repos=${REPOSITORIES}
+  check_specified_repo ${1}
+  for _repository in ${_repos}; do
+    disable_component ${_repository} ${2}
+  done
   MODIFIED=YES
 }
-#
-if [[ ${#} -lt 2 ]] || [[ ${#} -gt 3 ]]; then
-  echo "ERROR: Wrong number of parameters: ${#}"
-  show_help
-  exit 2
-fi
 #
 if [[ ${COMMANDS} != *${1}* ]]; then
   echo "ERROR: Unknown action specified: ${1}"
@@ -169,21 +189,10 @@ if [[ ${COMMANDS} != *${1}* ]]; then
   exit 2
 fi
 #
-if [[ ${REPOSITORIES} != *${2}* ]] && [[ ${2} != all ]]; then
-  echo "ERROR: Unknown repo specification: ${2}"
-  show_help
-  exit 2
-fi
-#
-if [[ -n ${3} ]] && [[ ${COMPONENTS} != *${3}* ]] && [[ ${3} != all ]]; then
-  echo "ERROR: Unknown component specification: ${3}"
-  show_help
-  exit 2
-fi
-#
 case $1 in
   list )
     list_repositories
+    exit
     ;;
   enable )
     shift
