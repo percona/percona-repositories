@@ -6,10 +6,13 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
+ALIASES="ps80-full"
 COMMANDS="list enable enable-only disable"
 REPOSITORIES="percona ps-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
+#
+PS80REPOS="ps-80 tools"
 #
 MODIFIED=NO
 REPOFILE=""
@@ -31,7 +34,7 @@ fi
 function check_specified_repo {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
-  for _repo in all ${REPOSITORIES}; do
+  for _repo in all ${REPOSITORIES} ${ALIASES}; do
     [[ ${_repo} = ${1} ]] && found=YES
   done
   [[ ${found} = NO ]] && echo "ERROR: Unknown repository specification: ${1}" && show_help && exit 2
@@ -40,7 +43,6 @@ function check_specified_repo {
 function check_specified_component {
   local message=""
   local found=NO
-  [[ -z ${1} ]] && echo "<!> No component specified, assuming \"release\"" && return
   for _component in all ${COMPONENTS}; do
     [[ ${_component} = ${1} ]] && found=YES
   done
@@ -69,6 +71,7 @@ function show_help {
   echo "  Example: $(basename ${0}) disable <REPO> IS EQUAL to disable <REPO> all"
   echo
   echo "-> Available commands:     ${COMMANDS}"
+  echo "-> Available repo aliases: ${ALIASES}"
   echo "-> Available repositories: ${REPOSITORIES}"
   echo "-> Available components:   ${COMPONENTS}"
   echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/index.html"
@@ -77,9 +80,11 @@ function show_help {
 function list_repositories {
   echo "Currently available repositories:"
   for _repository in ${REPOSITORIES}; do
-    echo "<*> Repository [${_repository}] with components: ${COMPONENTS}"
+    _repo=${_repository}
+    [[ ${_repository} != percona ]] && _repo=percona-${_repository}
+    echo "<*> Repository [${_repo}] with components: ${COMPONENTS}"
     for _component in ${COMPONENTS}; do
-      REPOFILE=${LOCATION}/${_repository}-${_component}.${EXT}
+      REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
       if [[ -f ${REPOFILE} ]]; then
         STATUS="IS INSTALLED"
         PREFIX="+++"
@@ -87,7 +92,7 @@ function list_repositories {
         STATUS="IS NOT INSTALLED"
         PREFIX="-"
       fi
-      echo "${PREFIX} ${_repository}-${_component}: ${STATUS}"
+      echo "${PREFIX} ${_repo}-${_component}: ${STATUS}"
     done
       echo
   done
@@ -128,10 +133,11 @@ function create_apt_repo {
 function enable_component {
   local _repo=${1}
   [[ ${_repo} != percona ]] && _repo=percona-${1}
-  check_specified_component ${2}
+  [[ -n ${2} ]] && check_specified_component ${2}
   if [[ ${2} = all ]]; then
     dCOMP=${COMPONENTS}
   elif [[ -z ${2} ]]; then
+    echo "<!> No component specified for ${_repo}, assuming \"release\""
     dCOMP=release
   else
     dCOMP=${2}
@@ -166,6 +172,7 @@ function disable_component {
 function enable_repository {
   local _repos=${1}
   [[ ${1} = all ]] && _repos=${REPOSITORIES}
+  [[ ${1} = ps80-full ]] && _repos=${PS80REPOS}
   check_specified_repo ${1}
   for _repository in ${_repos}; do
     enable_component ${_repository} ${2}
