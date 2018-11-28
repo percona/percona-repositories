@@ -7,7 +7,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 ALIASES="ps80"
-COMMANDS="list enable enable-only disable"
+COMMANDS="list enable enable-only setup disable"
 REPOSITORIES="percona ps-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
