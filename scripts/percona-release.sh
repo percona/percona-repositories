@@ -6,7 +6,7 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps80-full"
+ALIASES="ps80"
 COMMANDS="list enable enable-only disable"
 REPOSITORIES="percona ps-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
@@ -31,6 +31,15 @@ else
   exit 1
 fi
 #
+function check_specified_alias {
+  local found=NO
+  [[ -z ${1} ]] && echo "ERROR: No alias specified!" && show_help && exit 2
+  for _alias in ${ALIASES}; do
+    [[ ${_alias} = ${1} ]] && found=YES
+  done
+  [[ ${found} = NO ]] && echo "ERROR: Unknown alias specification: ${1}" && show_help && exit 2
+}
+
 function check_specified_repo {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
@@ -172,7 +181,6 @@ function disable_component {
 function enable_repository {
   local _repos=${1}
   [[ ${1} = all ]] && _repos=${REPOSITORIES}
-  [[ ${1} = ps80-full ]] && _repos=${PS80REPOS}
   check_specified_repo ${1}
   for _repository in ${_repos}; do
     enable_component ${_repository} ${2}
@@ -188,6 +196,14 @@ function disable_repository {
     disable_component ${_repository} ${2}
   done
   MODIFIED=YES
+}
+#
+function enable_alias {
+  check_specified_alias ${1}
+  [[ ${1} = ps80 ]] && REPOS=${PS80REPOS:-}
+  for _repo in ${REPOS}; do
+    enable_repository ${_repo}
+  done
 }
 #
 if [[ ${COMMANDS} != *${1}* ]]; then
@@ -209,6 +225,11 @@ case $1 in
     shift
     disable_repository all all
     enable_repository $@
+    ;;
+  setup )
+    shift
+    disable_repository all all
+    enable_alias $@
     ;;
   disable )
     shift
