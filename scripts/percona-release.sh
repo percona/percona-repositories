@@ -6,7 +6,7 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxc56 pxc57 pxc80"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
 COMMANDS="list enable enable-only setup disable"
 REPOSITORIES="percona ps-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
@@ -14,6 +14,7 @@ URL="http://repo.percona.com"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
+PXB80REPOS="tools"
 PSMDB40REPOS="psmdb-40 tools"
 #
 MODIFIED=NO
@@ -205,6 +206,7 @@ function enable_alias {
   check_specified_alias ${1}
   [[ ${1} = ps80 ]] && REPOS=${PS80REPOS:-}
   [[ ${1} = pxc80 ]] && REPOS=${PXC80REPOS:-}
+  [[ ${1} = pxb80 ]] && REPOS=${PXB80REPOS:-}
   [[ ${1} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="percona tools"
   for _repo in ${REPOS}; do
