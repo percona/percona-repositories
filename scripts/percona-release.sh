@@ -36,20 +36,28 @@ fi
 #
 function check_specified_alias {
   local found=NO
-  [[ -z ${1} ]] && echo "ERROR: No alias specified!" && show_help && exit 2
+  [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
   for _alias in ${ALIASES}; do
     [[ ${_alias} = ${1} ]] && found=YES
   done
-  [[ ${found} = NO ]] && echo "ERROR: Unknown alias specification: ${1}" && show_help && exit 2
+  if [[ ${found} = NO ]]; then
+    echo "ERROR: Unknown alias specification: ${1}"
+    echo "Available product aliases are: ${ALIASES}"
+    exit 2
+  fi
 }
 
 function check_specified_repo {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
-  for _repo in all ${REPOSITORIES} ${ALIASES}; do
+  for _repo in all ${REPOSITORIES}; do
     [[ ${_repo} = ${1} ]] && found=YES
   done
-  [[ ${found} = NO ]] && echo "ERROR: Unknown repository specification: ${1}" && show_help && exit 2
+  if [[ ${found} = NO ]]; then
+    echo "ERROR: Unknown repository: ${1}"
+    echo "Available repositories are: ${REPOSITORIES}"
+    exit 2
+  fi
 }
 #
 function check_specified_component {
