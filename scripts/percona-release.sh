@@ -108,10 +108,10 @@ function list_repositories {
     for _component in ${COMPONENTS}; do
       REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
       if [[ -f ${REPOFILE} ]]; then
-        STATUS="IS INSTALLED"
+        STATUS="IS ENABLED"
         PREFIX="+++"
       else
-        STATUS="IS NOT INSTALLED"
+        STATUS="IS DISABLED"
         PREFIX="-"
       fi
       echo "${PREFIX} ${_repo}-${_component}: ${STATUS}"
