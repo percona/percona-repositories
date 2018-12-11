@@ -82,21 +82,16 @@ function show_help {
   echo "Usage:    $(basename ${0}) list | enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
-  echo "  Example: $(basename ${0}) enable all testing"
-  echo "  Example: $(basename ${0}) enable ps-80 testing"
+  echo "  Example: $(basename ${0}) enable all release"
+  echo "  Example: $(basename ${0}) enable ps-80 experimental"
   echo "  Example: $(basename ${0}) enable-only percona testing"
   echo "  Example: $(basename ${0}) setup ps57"
   echo
-  echo "Short specification:"
-  echo "  Example: $(basename ${0}) enable  <REPO>  IS EQUAL to enable  <REPO> release"
-  echo "  Example: $(basename ${0}) setup   <ALIAS> IS EQUAL to enable appropriate release repositories"
-  echo "  Example: $(basename ${0}) disable <REPO>  IS EQUAL to disable <REPO> all"
-  echo
-  echo "-> Available commands:     ${COMMANDS}"
-  echo "-> Available repo aliases: ${ALIASES}"
-  echo "-> Available repositories: ${REPOSITORIES}"
-  echo "-> Available components:   ${COMPONENTS}"
-  echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/index.html"
+  echo "-> Available commands:       ${COMMANDS}"
+  echo "-> Available setup products: ${ALIASES}"
+  echo "-> Available repositories:   ${REPOSITORIES}"
+  echo "-> Available components:     ${COMPONENTS}"
+  echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
 }
 #
 function list_repositories {
