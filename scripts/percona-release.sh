@@ -160,6 +160,7 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
+    echo "* Enabling the ${1} ${_component} repository"
     REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
