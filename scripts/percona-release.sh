@@ -82,9 +82,8 @@ function show_help {
   echo "Usage:    $(basename ${0}) list | enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) list"
   echo "  Example: $(basename ${0}) enable all"
-  echo "  Example: $(basename ${0}) enable all release"
-  echo "  Example: $(basename ${0}) enable ps-80 experimental"
-  echo "  Example: $(basename ${0}) enable-only percona testing"
+  echo "  Example: $(basename ${0}) enable tools release"
+  echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
   echo "  Example: $(basename ${0}) setup ps57"
   echo
   echo "-> Available commands:       ${COMMANDS}"
