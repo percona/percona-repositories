@@ -154,7 +154,6 @@ function enable_component {
   if [[ ${2} = all ]]; then
     dCOMP=${COMPONENTS}
   elif [[ -z ${2} ]]; then
-    echo "<!> No component specified for ${_repo}, assuming \"release\""
     dCOMP=release
   else
     dCOMP=${2}
@@ -219,6 +218,14 @@ function enable_alias {
   done
   MODIFIED=YES
 }
+
+function check_setup_command {
+  if [[ -n ${2} ]]; then
+    echo "* \"setup\" command does not accept additional options!"
+    show_help
+    exit 2
+  fi
+}
 #
 if [[ ${COMMANDS} != *${1}* ]]; then
   echo "ERROR: Unknown action specified: ${1}"
@@ -237,11 +244,14 @@ case $1 in
     ;;
   enable-only )
     shift
+    echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_repository $@
     ;;
   setup )
     shift
+    check_setup_command $@
+    echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_alias $@
     ;;
