@@ -7,7 +7,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
-COMMANDS="list enable enable-only setup disable"
+COMMANDS="enable enable-only setup disable"
 REPOSITORIES="percona ps-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
@@ -80,8 +80,7 @@ function show_message {
 #
 function show_help {
   echo
-  echo "Usage:    $(basename ${0}) list | enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
-  echo "  Example: $(basename ${0}) list"
+  echo "Usage:     $(basename ${0})  enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) enable all"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
@@ -92,27 +91,6 @@ function show_help {
   echo "-> Available repositories:   ${REPOSITORIES}"
   echo "-> Available components:     ${COMPONENTS}"
   echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
-}
-#
-function list_repositories {
-  echo "Currently available repositories:"
-  for _repository in ${REPOSITORIES}; do
-    _repo=${_repository}
-    [[ ${_repository} != percona ]] && _repo=percona-${_repository}
-    echo "<*> Repository [${_repo}] with components: ${COMPONENTS}"
-    for _component in ${COMPONENTS}; do
-      REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
-      if [[ -f ${REPOFILE} ]]; then
-        STATUS="IS ENABLED"
-        PREFIX="+++"
-      else
-        STATUS="IS DISABLED"
-        PREFIX="-"
-      fi
-      echo "${PREFIX} ${_repo}-${_component}: ${STATUS}"
-    done
-      echo
-  done
 }
 #
 function run_update {
@@ -242,10 +220,6 @@ if [[ ${COMMANDS} != *${1}* ]]; then
 fi
 #
 case $1 in
-  list )
-    list_repositories
-    exit
-    ;;
   enable )
     shift
     enable_repository $@
