@@ -179,11 +179,15 @@ function enable_repository {
 #
 function disable_repository {
   local _repos=${1}
-  [[ ${1} = all ]] && _repos=${REPOSITORIES}
-  check_specified_repo ${1}
-  for _repository in ${_repos}; do
-    disable_component ${_repository} ${2}
-  done
+  if [[ ${1} = all ]]; then
+    _repos=${REPOSITORIES}
+    for _repository in ${_repos}; do
+      disable_component ${_repository} ${2}
+    done
+  else
+    check_specified_repo ${1}
+    disable_component ${1} ${2}
+  fi
   MODIFIED=YES
 }
 #
