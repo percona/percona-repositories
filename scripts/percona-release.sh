@@ -17,6 +17,7 @@ PXC80REPOS="pxc-80 tools"
 PXB80REPOS="tools"
 PSMDB40REPOS="psmdb-40 tools"
 #
+AUTOUPDATE=NO
 MODIFIED=NO
 REPOFILE=""
 #
@@ -112,6 +113,13 @@ function list_repositories {
     done
       echo
   done
+}
+#
+function run_update {
+  if [[ ${PKGTOOL} = "apt-get" ]]; then
+    AUTOUPDATE="YES"
+    ${PKGTOOL} update
+  fi
 }
 #
 function create_yum_repo {
@@ -216,21 +224,14 @@ function enable_alias {
   for _repo in ${REPOS}; do
     enable_repository ${_repo}
   done
-  MODIFIED=YES
   run_update
 }
-
+#
 function check_setup_command {
   if [[ -n ${2} ]]; then
     echo "* \"setup\" command does not accept additional options!"
     show_help
     exit 2
-  fi
-}
-#
-function run_update {
-  if [[ ${PKGTOOL} = "apt-get" ]] && [[ ${MODIFIED} = "YES" ]]; then
-    ${PKGTOOL} update
   fi
 }
 #
@@ -272,5 +273,7 @@ case $1 in
     ;;
 esac
 #
-show_message
+if [[ ${AUTOUPDATE} = NO ]]; then
+  show_message
+fi
 #
