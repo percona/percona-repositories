@@ -27,7 +27,7 @@ if [[ -f /etc/redhat-release ]]; then
 elif [[ -f /etc/debian_version ]]; then
   LOCATION=/etc/apt/sources.list.d
   EXT=list
-  PKGTOOL=apt
+  PKGTOOL="apt-get"
   CODENAME=$(lsb_release -sc)
 else
   echo "==>> ERROR: Unsupported system"
@@ -72,7 +72,7 @@ function check_specified_component {
 #
 function show_message {
   echo "<*> All done!"
-  if [[ ${MODIFIED} = YES ]] && [[ ${PKGTOOL} = apt ]]; then
+  if [[ ${MODIFIED} = YES ]] && [[ ${PKGTOOL} = "apt-get" ]]; then
     echo "==> Please run \"${PKGTOOL} update\" to apply changes"
   fi
 }
@@ -166,7 +166,7 @@ function enable_component {
     echo "#" >> ${REPOFILE}
     if [[ ${PKGTOOL} = yum ]]; then
       create_yum_repo ${1} ${_component}
-    elif [[ ${PKGTOOL} = apt ]]; then
+    elif [[ ${PKGTOOL} = "apt-get" ]]; then
       create_apt_repo ${1} ${_component}
     fi
   done
@@ -217,6 +217,7 @@ function enable_alias {
     enable_repository ${_repo}
   done
   MODIFIED=YES
+  run_update
 }
 
 function check_setup_command {
@@ -224,6 +225,12 @@ function check_setup_command {
     echo "* \"setup\" command does not accept additional options!"
     show_help
     exit 2
+  fi
+}
+#
+function run_update {
+  if [[ ${PKGTOOL} = "apt-get" ]] && [[ ${MODIFIED} = "YES" ]]; then
+    ${PKGTOOL} update
   fi
 }
 #
