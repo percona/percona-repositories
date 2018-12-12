@@ -51,7 +51,7 @@ function check_specified_alias {
 function check_specified_repo {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
-  for _repo in all ${REPOSITORIES}; do
+  for _repo in ${REPOSITORIES}; do
     [[ ${_repo} = ${1} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
@@ -80,7 +80,7 @@ function show_message {
 #
 function show_help {
   echo
-  echo "Usage:     $(basename ${0})  enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
+  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
   echo "  Example: $(basename ${0}) enable all"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
@@ -172,12 +172,8 @@ function disable_component {
 }
 #
 function enable_repository {
-  local _repos=${1}
-  [[ ${1} = all ]] && _repos=${REPOSITORIES}
   check_specified_repo ${1}
-  for _repository in ${_repos}; do
-    enable_component ${_repository} ${2}
-  done
+  enable_component ${1} ${2}
   MODIFIED=YES
 }
 #
