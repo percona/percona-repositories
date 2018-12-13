@@ -8,7 +8,7 @@ fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="percona ps-80 pxc-80 psmdb-40 tools"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -109,8 +109,10 @@ function run_update {
 }
 #
 function create_yum_repo {
+  local _repo=${1}
+  [[ ${1} = "original" ]] && _repo=percona
   for _key in "\$basearch" noarch sources; do
-    echo "[${1}-${2}-${_key}]" >> ${REPOFILE}
+    echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
     if [[ ${_key} = sources ]]; then
       DIR=SRPMS
@@ -121,7 +123,7 @@ function create_yum_repo {
       rPATH="/${_key}"
       ENABLE=1
     fi
-    echo "baseurl = ${URL}/${1}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
+    echo "baseurl = ${URL}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
     echo "enable = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
     echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
@@ -130,7 +132,9 @@ function create_yum_repo {
 }
 #
 function create_apt_repo {
-  REPOURL="${URL}/${1}/apt ${CODENAME}"
+  local _repo=${1}
+  [[ ${1} = "original" ]] && _repo=percona
+  REPOURL="${URL}/${_repo}/apt ${CODENAME}"
   if [[ ${2} = release ]]; then
     _component=main
     echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
@@ -141,8 +145,7 @@ function create_apt_repo {
 }
 #
 function enable_component {
-  local _repo=${1}
-  [[ ${_repo} != percona ]] && _repo=percona-${1}
+  local _repo=percona-${1}
   [[ -n ${2} ]] && check_specified_component ${2}
   if [[ ${2} = all ]]; then
     dCOMP=${COMPONENTS}
@@ -166,8 +169,7 @@ function enable_component {
 }
 #
 function disable_component {
-  local _repo=${1}
-  [[ ${_repo} != percona ]] && _repo=percona-${1}
+  local _repo=percona-${1}
   if [[ ${2} = all ]] || [[ -z ${2} ]]; then
     for _component in ${COMPONENTS}; do
       mv -f ${LOCATION}/${_repo}-${_component}.${EXT} ${LOCATION}/${_repo}-${_component}.${EXT}.bak 2>/dev/null
