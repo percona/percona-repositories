@@ -8,9 +8,17 @@ fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="percona ps-80 psmdb-40 tools"
+REPOSITORIES="percona ps-80 pxc-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
+
+#
+DESCRIPTION=""
+DEFAULT_REPO_DESC="Percona Original"
+PS80_DESC="Percona Server 8.0"
+PXC80_DESC="Percona XtraDB Cluster 8.0"
+PSMDB40_DESC="Percona Server for MongoDB 4.0"
+TOOLS_DESC="Percona Tools"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
@@ -103,7 +111,7 @@ function run_update {
 function create_yum_repo {
   for _key in "\$basearch" noarch sources; do
     echo "[${1}-${2}-${_key}]" >> ${REPOFILE}
-    echo "name = Percona ${2}-${_key} YUM repository for \$basearch" >> ${REPOFILE}
+    echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
     if [[ ${_key} = sources ]]; then
       DIR=SRPMS
       rPATH=""
@@ -145,7 +153,6 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
-    echo "* Enabling the ${1} ${_component} repository"
     REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
@@ -173,6 +180,12 @@ function disable_component {
 #
 function enable_repository {
   check_specified_repo ${1}
+  [[ ${1} = "ps-80" ]]    && DESCRIPTION=${PS80_DESC}
+  [[ ${1} = "pxc-80" ]]   && DESCRIPTION=${PXC80_DESC}
+  [[ ${1} = "psmdb40" ]]  && DESCRIPTION=${PSMDB40_DESC}
+  [[ ${1} = "tools" ]]    && DESCRIPTION=${TOOLS_DESC}
+  [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
+  echo "* Enabling the ${DESCRIPTION} repository"
   enable_component ${1} ${2}
   MODIFIED=YES
 }
