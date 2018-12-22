@@ -13,8 +13,3 @@ DEBVERSION = $(shell lsb_release -c -s)
 
 %:
 	dh $@
-
-override_dh_auto_build:
-	dh_auto_build
-	sed -e "s|@@VERSION@@|$(DEBVERSION)|g" percona-release.template > percona-release.list
-

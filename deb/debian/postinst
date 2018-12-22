@@ -28,7 +28,7 @@ case "$1" in
     configure)
       eval "/usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring.gpg  ${SUPRESSOR}"
       eval "/usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring2.gpg ${SUPRESSOR}"
-
+      /usr/bin/percona-release enable original
 cat << EOF
 The percona-release package now contains a percona-release script that can enable additional repositories for our newer products.
 

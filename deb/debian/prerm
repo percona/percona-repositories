@@ -23,6 +23,7 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
+    /usr/bin/percona-release disable all
     ;;
 
     failed-upgrade)
