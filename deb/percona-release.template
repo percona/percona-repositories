@@ -1,5 +1,0 @@
-#
-# This repo is managed by "percona-release" utility, do not edit!
-#
-deb http://repo.percona.com/percona/apt @@VERSION@@ main
-deb-src http://repo.percona.com/percona/apt @@VERSION@@ main
