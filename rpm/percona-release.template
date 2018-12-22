@@ -18,8 +18,8 @@ Source1:      percona-release.sh
 %prep
 
 %build
+%{__cp} -f %{SOURCE0} %{_builddir}
 %{__cp} -f %{SOURCE1} %{_builddir}
-%{__cp} -f %{SOURCE2} %{_builddir}
 
 %install
 %{__rm} -rf %{buildroot}
