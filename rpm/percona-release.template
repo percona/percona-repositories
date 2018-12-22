@@ -6,10 +6,8 @@ License:      GPL-3.0+
 Group:        System Environment/Base
 BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
-Source0:      percona-release.repo
-Source1:      PERCONA-PACKAGING-KEY
-Source2:      RPM-GPG-KEY-Percona
-Source3:      percona-release.sh
+Source0:      PERCONA-PACKAGING-KEY
+Source1:      percona-release.sh
 
 %description
 %{name} package contains Percona GPG public keys and Percona repository configuration for YUM
@@ -25,27 +23,23 @@ Source3:      percona-release.sh
 
 %install
 %{__rm} -rf %{buildroot}
-%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/percona-release.repo
-%{__install} -D -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
-%{__install} -D -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
-%{__install} -D -m 0755 %{SOURCE3} %{buildroot}%{_bindir}/percona-release
+%{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+%{__install} -D -m 0755 %{SOURCE1} %{buildroot}%{_bindir}/percona-release
 
 %files
 %defattr(-, root, root, 0644)
-%config %{_sysconfdir}/yum.repos.d/percona-release.repo
-%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 %{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
-
 %attr(755, root, root) %{_bindir}/percona-release
 
 %doc PERCONA-PACKAGING-KEY
-%doc RPM-GPG-KEY-Percona
 %pubkey PERCONA-PACKAGING-KEY
 
 
 
 %post
-rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+#
+%{_bindir}/percona-release enable original
+#
 cat << EOF
 The percona-release package now contains a percona-release script that can enable additional repositories for our newer products.
 
@@ -59,6 +53,11 @@ For more information, please visit:
   https://www.percona.com/doc/percona-repo-config/percona-release.html
 
 EOF
+
+%preun
+#
+%{_bindir}/percona-release disable all
+#
 
 %changelog
 * Wed Oct 24 2018 Alexey Bychko <alexey.bychko@percona.com> - 0.1-8
