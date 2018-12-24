@@ -8,6 +8,7 @@ BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
 Source0:      PERCONA-PACKAGING-KEY
 Source1:      percona-release.sh
+Source2:      RPM-GPG-KEY-Percona
 
 %description
 %{name} package contains Percona GPG public keys and Percona repository configuration for YUM
@@ -20,23 +21,28 @@ Source1:      percona-release.sh
 %build
 %{__cp} -f %{SOURCE0} %{_builddir}
 %{__cp} -f %{SOURCE1} %{_builddir}
+%{__cp} -f %{SOURCE2} %{_builddir}
 
 %install
 %{__rm} -rf %{buildroot}
 %{__install} -D -m 0644 %{SOURCE0} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 %{__install} -D -m 0755 %{SOURCE1} %{buildroot}%{_bindir}/percona-release
+%{__install} -D -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 
 %files
 %defattr(-, root, root, 0644)
 %{_sysconfdir}/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 %attr(755, root, root) %{_bindir}/percona-release
+
 
 %doc PERCONA-PACKAGING-KEY
 %pubkey PERCONA-PACKAGING-KEY
 
 
-
 %post
+#
+rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 #
 %{_bindir}/percona-release enable original
 #
