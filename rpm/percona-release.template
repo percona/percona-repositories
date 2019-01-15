@@ -60,9 +60,11 @@ For more information, please visit:
 
 EOF
 
-%preun
+%postun
 #
-%{_bindir}/percona-release disable all
+if [ $1 -eq 0 ]; then
+  %{_bindir}/percona-release disable all
+fi
 #
 
 %changelog
