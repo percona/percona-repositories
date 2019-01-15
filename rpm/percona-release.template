@@ -60,7 +60,7 @@ For more information, please visit:
 
 EOF
 
-%postun
+%preun
 #
 if [ $1 -eq 0 ]; then
   %{_bindir}/percona-release disable all
