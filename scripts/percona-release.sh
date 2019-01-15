@@ -28,8 +28,8 @@ PSMDB40REPOS="psmdb-40 tools"
 AUTOUPDATE=NO
 MODIFIED=NO
 REPOFILE=""
-#
-if [[ -f /etc/redhat-release ]]; then
+#          RH derivatives      and          Amazon Linux
+if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
   LOCATION=/etc/yum.repos.d
   EXT=repo
   PKGTOOL=yum
