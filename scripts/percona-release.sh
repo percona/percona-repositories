@@ -213,7 +213,7 @@ function enable_alias {
   [[ ${1} = pxc80 ]] && REPOS=${PXC80REPOS:-}
   [[ ${1} = pxb80 ]] && REPOS=${PXB80REPOS:-}
   [[ ${1} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
-  [[ -z ${REPOS} ]] && REPOS="percona tools"
+  [[ -z ${REPOS} ]] && REPOS="original tools"
   for _repo in ${REPOS}; do
     enable_repository ${_repo}
   done
