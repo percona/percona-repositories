@@ -16,6 +16,7 @@ URL="http://repo.percona.com"
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
 PS80_DESC="Percona Server 8.0"
+PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 TOOLS_DESC="Percona Tools"
@@ -184,6 +185,7 @@ function enable_repository {
   check_specified_repo ${1}
   [[ ${1} = "ps-80" ]]    && DESCRIPTION=${PS80_DESC}
   [[ ${1} = "pxc-80" ]]   && DESCRIPTION=${PXC80_DESC}
+  [[ ${1} = "pxb-80" ]]   && DESCRIPTION=${PXB80_DESC}
   [[ ${1} = "psmdb-40" ]]  && DESCRIPTION=${PSMDB40_DESC}
   [[ ${1} = "tools" ]]    && DESCRIPTION=${TOOLS_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
