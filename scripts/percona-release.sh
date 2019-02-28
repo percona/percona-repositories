@@ -184,7 +184,7 @@ function enable_repository {
   check_specified_repo ${1}
   [[ ${1} = "ps-80" ]]    && DESCRIPTION=${PS80_DESC}
   [[ ${1} = "pxc-80" ]]   && DESCRIPTION=${PXC80_DESC}
-  [[ ${1} = "psmdb40" ]]  && DESCRIPTION=${PSMDB40_DESC}
+  [[ ${1} = "psmdb-40" ]]  && DESCRIPTION=${PSMDB40_DESC}
   [[ ${1} = "tools" ]]    && DESCRIPTION=${TOOLS_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
