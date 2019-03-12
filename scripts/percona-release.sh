@@ -34,6 +34,7 @@ if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
   LOCATION=/etc/yum.repos.d
   EXT=repo
   PKGTOOL=yum
+  ARCH=$(rpm --eval %_arch)
 elif [[ -f /etc/debian_version ]]; then
   LOCATION=/etc/apt/sources.list.d
   EXT=list
@@ -112,7 +113,7 @@ function run_update {
 function create_yum_repo {
   local _repo=${1}
   [[ ${1} = "original" ]] && _repo=percona
-  for _key in "\$basearch" noarch sources; do
+  for _key in "${ARCH}" noarch sources; do
     echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
     if [[ ${_key} = sources ]]; then
