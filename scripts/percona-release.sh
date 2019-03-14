@@ -8,7 +8,7 @@ fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools"
+REPOSITORIES="original ps-80 pxb-80 pxc-80 psmdb-40 tools"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
