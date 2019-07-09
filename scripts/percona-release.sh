@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80 ppg11"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools ppg-11"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -23,11 +23,13 @@ PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 TOOLS_DESC="Percona Tools"
+PPG11_DESC="Percona Platform for PostgreSQL 11"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
 PXB80REPOS="tools"
 PSMDB40REPOS="psmdb-40 tools"
+PPG11REPOS="ppg-11 tools"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
