@@ -1,14 +1,17 @@
 #!/bin/bash
 #
 #
+#If you want to make script non-interactive please change this variable to NO
+INTERACTIVE=YES
+#
 if [[ $(id -u) -gt 0 ]]; then
   echo "Please run $(basename ${0}) as root!"
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80 ppg11"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools ppg-11"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -20,11 +23,13 @@ PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 TOOLS_DESC="Percona Tools"
+PPG11_DESC="Percona Platform for PostgreSQL 11"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
 PXB80REPOS="tools"
 PSMDB40REPOS="psmdb-40 tools"
+PPG11REPOS="ppg-11 tools"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -209,6 +214,30 @@ function disable_repository {
   MODIFIED=YES
 }
 #
+function disable_dnf_module {
+  if [[ -f /usr/bin/dnf ]]; then
+    if [[ ${INTERACTIVE} = YES ]]; then
+      echo "On RedHat 8 systems it is needed to disable dnf mysql module to install Percona-Server"
+      read -r -p "Do you want to disable it? [y/N] " response
+      if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+      then
+        echo "Disabling dnf module..."
+        dnf -y module disable mysql
+        echo "dnf mysql module was disabled"
+      else
+        echo "Please note that some packages might be unavailable"
+        echo "If in future you decide to disable module please execute the next command:"
+        echo "  dnf module disable mysql"
+      fi
+    else
+      echo "On RedHat 8 systems it is needed to disable dnf mysql module to install Percona-Server"
+      echo "Disabling dnf module..."
+      dnf -y module disable mysql
+      echo "dnf mysql module was disabled"
+    fi
+  fi
+}
+#
 function enable_alias {
   local REPOS=""
   check_specified_alias ${1}
@@ -217,6 +246,9 @@ function enable_alias {
   [[ ${1} = pxb80 ]] && REPOS=${PXB80REPOS:-}
   [[ ${1} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
+  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]]; then
+    disable_dnf_module
+  fi
   for _repo in ${REPOS}; do
     enable_repository ${_repo}
   done
