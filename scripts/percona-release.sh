@@ -23,7 +23,7 @@ PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 TOOLS_DESC="Percona Tools"
-PPG11_DESC="Percona Platform for PostgreSQL 11"
+PPG11_DESC="Percona PostgreSQL 11 Distribution"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
@@ -194,6 +194,7 @@ function enable_repository {
   [[ ${1} = "pxb-80" ]]   && DESCRIPTION=${PXB80_DESC}
   [[ ${1} = "psmdb-40" ]]  && DESCRIPTION=${PSMDB40_DESC}
   [[ ${1} = "tools" ]]    && DESCRIPTION=${TOOLS_DESC}
+  [[ ${1} = "ppg-11" ]]    && DESCRIPTION=${PPG11_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
   enable_component ${1} ${2}
@@ -215,25 +216,32 @@ function disable_repository {
 }
 #
 function disable_dnf_module {
+  REPO_NAME=${1}
+  MODULE="mysql"
+  PRODUCT="Percona-Server"
+  if [[ ${REPO_NAME} = "ppg11" ]]; then
+    MODULE="postgresql"
+    PRODUCT="Percona PostgreSQL Distribution"
+  fi
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On RedHat 8 systems it is needed to disable dnf mysql module to install Percona-Server"
+      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
         echo "Disabling dnf module..."
-        dnf -y module disable mysql
-        echo "dnf mysql module was disabled"
+        dnf -y module disable ${MODULE}
+        echo "dnf ${MODULE} module was disabled"
       else
         echo "Please note that some packages might be unavailable"
         echo "If in future you decide to disable module please execute the next command:"
-        echo "  dnf module disable mysql"
+        echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On RedHat 8 systems it is needed to disable dnf mysql module to install Percona-Server"
+      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
       echo "Disabling dnf module..."
-      dnf -y module disable mysql
-      echo "dnf mysql module was disabled"
+      dnf -y module disable ${MODULE}
+      echo "dnf ${MODULE} module was disabled"
     fi
   fi
 }
@@ -245,9 +253,10 @@ function enable_alias {
   [[ ${1} = pxc80 ]] && REPOS=${PXC80REPOS:-}
   [[ ${1} = pxb80 ]] && REPOS=${PXB80REPOS:-}
   [[ ${1} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
+  [[ ${1} = ppg11 ]] && REPOS=${PPG11REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]]; then
-    disable_dnf_module
+  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11  ]]; then
+    disable_dnf_module ${1}
   fi
   for _repo in ${REPOS}; do
     enable_repository ${_repo}
