@@ -23,7 +23,7 @@ PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 TOOLS_DESC="Percona Tools"
-PPG11_DESC="Percona PostgreSQL 11 Distribution"
+PPG11_DESC="Percona Distribution for PostgreSQL 11"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
