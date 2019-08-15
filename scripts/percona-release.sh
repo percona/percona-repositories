@@ -95,8 +95,7 @@ function show_message {
 #
 function show_help {
   echo
-  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT | all]"
-  echo "  Example: $(basename ${0}) enable all"
+  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT]"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
   echo "  Example: $(basename ${0}) setup ps57"
