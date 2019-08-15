@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 pxb80 pxc56 pxc57 pxc80 ppg11"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 tools ppg-11"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -22,6 +22,7 @@ PS80_DESC="Percona Server 8.0"
 PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
+PSMDB42_DESC="Percona Server for MongoDB 4.2"
 TOOLS_DESC="Percona Tools"
 PPG11_DESC="Percona Distribution for PostgreSQL 11"
 #
@@ -29,6 +30,7 @@ PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
 PXB80REPOS="tools"
 PSMDB40REPOS="psmdb-40 tools"
+PSMDB42REPOS="psmdb-42 tools"
 PPG11REPOS="ppg-11 tools"
 #
 AUTOUPDATE=NO
@@ -192,6 +194,7 @@ function enable_repository {
   [[ ${1} = "pxc-80" ]]   && DESCRIPTION=${PXC80_DESC}
   [[ ${1} = "pxb-80" ]]   && DESCRIPTION=${PXB80_DESC}
   [[ ${1} = "psmdb-40" ]]  && DESCRIPTION=${PSMDB40_DESC}
+  [[ ${1} = "psmdb-42" ]]  && DESCRIPTION=${PSMDB42_DESC}
   [[ ${1} = "tools" ]]    && DESCRIPTION=${TOOLS_DESC}
   [[ ${1} = "ppg-11" ]]    && DESCRIPTION=${PPG11_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
@@ -252,6 +255,7 @@ function enable_alias {
   [[ ${1} = pxc80 ]] && REPOS=${PXC80REPOS:-}
   [[ ${1} = pxb80 ]] && REPOS=${PXB80REPOS:-}
   [[ ${1} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
+  [[ ${1} = psmdb42 ]] && REPOS=${PSMDB42REPOS:-}
   [[ ${1} = ppg11 ]] && REPOS=${PPG11REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
   if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11  ]]; then
