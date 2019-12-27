@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg12.1"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-12.1"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -27,6 +27,7 @@ TOOLS_DESC="Percona Tools"
 PPG11_DESC="Percona Distribution for PostgreSQL 11"
 PPG11_5_DESC="Percona Distribution for PostgreSQL 11.5"
 PPG11_6_DESC="Percona Distribution for PostgreSQL 11.6"
+PPG12_1_DESC="Percona Distribution for PostgreSQL 12.1"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
@@ -36,6 +37,7 @@ PSMDB42REPOS="psmdb-42 tools"
 PPG11REPOS="ppg-11 tools"
 PPG11_5_REPOS="ppg-11.5 tools"
 PPG11_6_REPOS="ppg-11.6 tools"
+PPG12_1_REPOS="ppg-12.1 tools"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -203,6 +205,7 @@ function enable_repository {
   [[ ${1} = "ppg-11" ]]    && DESCRIPTION=${PPG11_DESC}
   [[ ${1} = "ppg-11.5" ]]    && DESCRIPTION=${PPG11_5_DESC}
   [[ ${1} = "ppg-11.6" ]]    && DESCRIPTION=${PPG11_6_DESC}
+  [[ ${1} = "ppg-12.1" ]]    && DESCRIPTION=${PPG12_1_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
   enable_component ${1} ${2}
@@ -227,7 +230,7 @@ function disable_dnf_module {
   REPO_NAME=${1}
   MODULE="mysql"
   PRODUCT="Percona-Server"
-  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]]; then
+  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg12.1" ]]; then
     MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
@@ -265,8 +268,9 @@ function enable_alias {
   [[ ${1} = ppg11 ]] && REPOS=${PPG11REPOS:-}
   [[ ${1} = ppg11.5 ]] && REPOS=${PPG11_5_REPOS:-}
   [[ ${1} = ppg11.6 ]] && REPOS=${PPG11_6_REPOS:-}
+  [[ ${1} = ppg12.1 ]] && REPOS=${PPG12_1_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11 ]] || [[ ${1} = ppg11.5 ]] || [[ ${1} = ppg11.6 ]]; then
+  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11 ]] || [[ ${1} = ppg11.5 ]] || [[ ${1} = ppg11.6 ]] || [[ ${1} = ppg12.1 ]]; then
     disable_dnf_module ${1}
   fi
   for _repo in ${REPOS}; do
