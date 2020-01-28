@@ -111,6 +111,8 @@ for _alias in ${ALIASES}; do
   [[ ${_alias} = ppg11 ]] && REPOS=${PPG11REPOS:-}
   [[ ${_alias} = ppg11.5 ]] && REPOS=${PPG11_5_REPOS:-}
   [[ ${_alias} = ppg11.6 ]] && REPOS=${PPG11_6_REPOS:-}
+  [[ ${_alias} = pdmdb4.2.2 ]] && REPOS=${PDMDB_4_2_2_REPOS:-}
+  [[ ${_alias} = pdmdb4.2 ]] && REPOS=${PDMDB_4_2_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
     ./${SCRIPT} setup ${_alias}
     for _repository in ${REPOS}; do
