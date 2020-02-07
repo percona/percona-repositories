@@ -11,7 +11,7 @@ fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg12.1 pdmdb4.2 pdmdb4.2.2"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg12.1 pdmdb-4.2 pdmdb-4.2.2"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-12.1 pdmdb-4.2 pdmdb-4.2.2"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
