@@ -66,7 +66,8 @@ function check_specified_alias {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
   for _alias in ${ALIASES}; do
-    [[ ${_alias} = ${1} ]] && found=YES
+    NAME=$(echo ${1} | sed 's/-//' )
+    [[ ${_alias} = ${NAME} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
     echo "ERROR: Unknown alias specification: ${1}"
