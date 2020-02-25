@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg12.1 pdmdb4.2 pdmdb4.2.2"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg12 ppg12.1 pdmdb4.2 pdmdb4.2.2"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-12.1 pdmdb-4.2 pdmdb-4.2.2"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-12 ppg-12.1 pdmdb-4.2 pdmdb-4.2.2"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -29,6 +29,7 @@ PPG11_5_DESC="Percona Distribution for PostgreSQL 11.5"
 PPG11_6_DESC="Percona Distribution for PostgreSQL 11.6"
 PDMDB4_2_DESC="Percona Distribution for MongoDB 4.2"
 PDMDB4_2_2_DESC="Percona Distribution for MongoDB 4.2.2"
+PPG12_DESC="Percona Distribution for PostgreSQL 12"
 PPG12_1_DESC="Percona Distribution for PostgreSQL 12.1"
 #
 PS80REPOS="ps-80 tools"
@@ -41,6 +42,7 @@ PPG11_5_REPOS="ppg-11.5 tools"
 PPG11_6_REPOS="ppg-11.6 tools"
 PDMDB4_2_2_REPOS="pdmdb-4.2.2"
 PDMDB4_2_REPOS="pdmdb-4.2"
+PPG12_REPOS="ppg-12 tools"
 PPG12_1_REPOS="ppg-12.1 tools"
 #
 AUTOUPDATE=NO
@@ -66,7 +68,8 @@ function check_specified_alias {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
   for _alias in ${ALIASES}; do
-    [[ ${_alias} = ${1} ]] && found=YES
+    NAME=$(echo ${1} | sed 's/-//' )
+    [[ ${_alias} = ${NAME} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
     echo "ERROR: Unknown alias specification: ${1}"
@@ -211,6 +214,7 @@ function enable_repository {
   [[ ${1} = "ppg-11.6" ]]    && DESCRIPTION=${PPG11_6_DESC}
   [[ ${1} = "pdmdb-4.2" ]]    && DESCRIPTION=${PDMDB4_2_DESC}
   [[ ${1} = "pdmdb-4.2.2" ]]    && DESCRIPTION=${PDMDB4_2_2_DESC}
+  [[ ${1} = "ppg-12" ]]    && DESCRIPTION=${PPG12_DESC}
   [[ ${1} = "ppg-12.1" ]]    && DESCRIPTION=${PPG12_1_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
@@ -236,7 +240,7 @@ function disable_dnf_module {
   REPO_NAME=${1}
   MODULE="mysql"
   PRODUCT="Percona-Server"
-  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg12.1" ]]; then
+  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg12" ]] || [[ ${REPO_NAME} = "ppg12.1" ]]; then
     MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
@@ -276,9 +280,10 @@ function enable_alias {
   [[ ${1} = ppg11.6 ]] && REPOS=${PPG11_6_REPOS:-}
   [[ ${1} = pdmdb4.2 ]] && REPOS=${PDMDB4_2_REPOS:-}
   [[ ${1} = pdmdb4.2.2 ]] && REPOS=${PDMDB4_2_2_REPOS:-}
+  [[ ${1} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
   [[ ${1} = ppg12.1 ]] && REPOS=${PPG12_1_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11 ]] || [[ ${1} = ppg11.5 ]] || [[ ${1} = ppg11.6 ]] || [[ ${1} = ppg12.1 ]]; then
+  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11 ]] || [[ ${1} = ppg11.5 ]] || [[ ${1} = ppg11.6 ]] || [[ ${1} = ppg12 ]] || [[ ${1} = ppg12.1 ]]; then
     disable_dnf_module ${1}
   fi
   for _repo in ${REPOS}; do
