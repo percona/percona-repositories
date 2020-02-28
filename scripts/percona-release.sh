@@ -269,22 +269,23 @@ function disable_dnf_module {
 #
 function enable_alias {
   local REPOS=""
-  check_specified_alias ${1}
-  [[ ${1} = ps80 ]] && REPOS=${PS80REPOS:-}
-  [[ ${1} = pxc80 ]] && REPOS=${PXC80REPOS:-}
-  [[ ${1} = pxb80 ]] && REPOS=${PXB80REPOS:-}
-  [[ ${1} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
-  [[ ${1} = psmdb42 ]] && REPOS=${PSMDB42REPOS:-}
-  [[ ${1} = ppg11 ]] && REPOS=${PPG11REPOS:-}
-  [[ ${1} = ppg11.5 ]] && REPOS=${PPG11_5_REPOS:-}
-  [[ ${1} = ppg11.6 ]] && REPOS=${PPG11_6_REPOS:-}
-  [[ ${1} = pdmdb4.2 ]] && REPOS=${PDMDB4_2_REPOS:-}
-  [[ ${1} = pdmdb4.2.2 ]] && REPOS=${PDMDB4_2_2_REPOS:-}
-  [[ ${1} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
-  [[ ${1} = ppg12.1 ]] && REPOS=${PPG12_1_REPOS:-}
+  local NAME=$( echo ${1} | sed 's/-//' )
+  check_specified_alias ${NAME}
+  [[ ${NAME} = ps80 ]] && REPOS=${PS80REPOS:-}
+  [[ ${NAME} = pxc80 ]] && REPOS=${PXC80REPOS:-}
+  [[ ${NAME} = pxb80 ]] && REPOS=${PXB80REPOS:-}
+  [[ ${NAME} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
+  [[ ${NAME} = psmdb42 ]] && REPOS=${PSMDB42REPOS:-}
+  [[ ${NAME} = ppg11 ]] && REPOS=${PPG11REPOS:-}
+  [[ ${NAME} = ppg11.5 ]] && REPOS=${PPG11_5_REPOS:-}
+  [[ ${NAME} = ppg11.6 ]] && REPOS=${PPG11_6_REPOS:-}
+  [[ ${NAME} = pdmdb4.2 ]] && REPOS=${PDMDB4_2_REPOS:-}
+  [[ ${NAME} = pdmdb4.2.2 ]] && REPOS=${PDMDB4_2_2_REPOS:-}
+  [[ ${NAME} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
+  [[ ${NAME} = ppg12.1 ]] && REPOS=${PPG12_1_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${1} = ps80 ]] || [[ ${1} = pxc80 ]] || [[ ${1} = ppg11 ]] || [[ ${1} = ppg11.5 ]] || [[ ${1} = ppg11.6 ]] || [[ ${1} = ppg12 ]] || [[ ${1} = ppg12.1 ]]; then
-    disable_dnf_module ${1}
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} = pxc80 ]] || [[ ${NAME} = ppg11 ]] || [[ ${NAME} = ppg11.5 ]] || [[ ${NAME} = ppg11.6 ]] || [[ ${NAME} = ppg12 ]] || [[ ${NAME} = ppg12.1 ]]; then
+    disable_dnf_module ${NAME}
   fi
   for _repo in ${REPOS}; do
     enable_repository ${_repo}
