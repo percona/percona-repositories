@@ -11,5 +11,5 @@ Vcs-Git: https://github.com/percona/percona-repositories.git
 Package: percona-release
 Architecture: all
 Pre-Depends: gpgv
-Depends: lsb-release, gnupg2, ${misc:Depends}
+Depends: lsb-release, ${misc:Depends}
 Description: Package to install Percona gpg key and APT repos
