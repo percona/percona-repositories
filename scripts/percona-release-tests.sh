@@ -115,7 +115,9 @@ for _alias in ${ALIASES}; do
   [[ ${_alias} = pdmdb4.2.2 ]] && REPOS=${PDMDB_4_2_2_REPOS:-}
   [[ ${_alias} = pdmdb4.2 ]] && REPOS=${PDMDB_4_2_REPOS:-}
   [[ ${_alias} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
-  [[ ${_alias} = ppg12.1 ]] && REPOS=${PPG12_1_REPOS:-}
+  [[ ${_alias} = ppg12.2 ]] && REPOS=${PPG12_2_REPOS:-}
+  [[ ${_alias} = pdmysql8.0 ]] && REPOS=${PDMYSQL80_REPOS:-}
+  [[ ${_alias} = pdmysql8.0.18 ]] && REPOS=${PDMYSQL80_18_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
     ./${SCRIPT} setup ${_alias}
     for _repository in ${REPOS}; do

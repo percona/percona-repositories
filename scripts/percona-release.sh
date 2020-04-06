@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg12 ppg12.1 pdmdb4.2 pdmdb4.2.2"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg12 ppg12.2 pdmdb4.2 pdmdb4.2.2 pdmysql8.0.18 pdmysql8.0"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-12 ppg-12.1 pdmdb-4.2 pdmdb-4.2.2"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-12 ppg-12.2 pdmdb-4.2 pdmdb-4.2.2 pdmysql-8.0 pdmysql-8.0.18"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -31,7 +31,9 @@ PPG11_7_DESC="Percona Distribution for PostgreSQL 11.7"
 PDMDB4_2_DESC="Percona Distribution for MongoDB 4.2"
 PDMDB4_2_2_DESC="Percona Distribution for MongoDB 4.2.2"
 PPG12_DESC="Percona Distribution for PostgreSQL 12"
-PPG12_1_DESC="Percona Distribution for PostgreSQL 12.1"
+PPG12_2_DESC="Percona Distribution for PostgreSQL 12.2"
+PDMYSQL80_DESC="Percona Distribution for MySQL 8.0"
+PDMYSQL80_18_DESC="Percona Distribution for MySQL 8.0.18"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
@@ -45,7 +47,9 @@ PPG11_7_REPOS="ppg-11.7 tools"
 PDMDB4_2_2_REPOS="pdmdb-4.2.2 tools"
 PDMDB4_2_REPOS="pdmdb-4.2 tools"
 PPG12_REPOS="ppg-12 tools"
-PPG12_1_REPOS="ppg-12.1 tools"
+PPG12_2_REPOS="ppg-12.2 tools"
+PDMYSQL80_REPOS="pdmysql-8.0 tools"
+PDMYSQL80_18_REPOS="pdmysql-8.0.18 tools"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -218,7 +222,9 @@ function enable_repository {
   [[ ${1} = "pdmdb-4.2" ]]    && DESCRIPTION=${PDMDB4_2_DESC}
   [[ ${1} = "pdmdb-4.2.2" ]]    && DESCRIPTION=${PDMDB4_2_2_DESC}
   [[ ${1} = "ppg-12" ]]    && DESCRIPTION=${PPG12_DESC}
-  [[ ${1} = "ppg-12.1" ]]    && DESCRIPTION=${PPG12_1_DESC}
+  [[ ${1} = "ppg-12.2" ]]    && DESCRIPTION=${PPG12_2_DESC}
+  [[ ${1} = "pdmysql-8.0" ]]    && DESCRIPTION=${PDMYSQL80_DESC}
+  [[ ${1} = "pdmysql-8.0.18" ]]    && DESCRIPTION=${PDMYSQL80_18_DESC}
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
   enable_component ${1} ${2}
@@ -243,9 +249,17 @@ function disable_dnf_module {
   REPO_NAME=${1}
   MODULE="mysql"
   PRODUCT="Percona-Server"
-  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg11.7" ]] || [[ ${REPO_NAME} = "ppg12" ]] || [[ ${REPO_NAME} = "ppg12.1" ]]; then
+  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg11.7" ]] || [[ ${REPO_NAME} = "ppg12" ]] || [[ ${REPO_NAME} = "ppg12.2" ]]; then
     MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
+  fi
+  if [[ ${REPO_NAME} = "pdmysql8.0" ]] || [[ ${REPO_NAME} = "pdmysql8.0.18" ]]; then
+    MODULE="mysql"
+    PRODUCT="Percona Distribution for MySQL"
+  fi
+  if [[ ${REPO_NAME} = "pxc80" ]];  then
+    MODULE="mysql"
+    PRODUCT="Percona XtraDB Cluster"
   fi
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
@@ -286,9 +300,11 @@ function enable_alias {
   [[ ${NAME} = pdmdb4.2 ]] && REPOS=${PDMDB4_2_REPOS:-}
   [[ ${NAME} = pdmdb4.2.2 ]] && REPOS=${PDMDB4_2_2_REPOS:-}
   [[ ${NAME} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
-  [[ ${NAME} = ppg12.1 ]] && REPOS=${PPG12_1_REPOS:-}
+  [[ ${NAME} = ppg12.2 ]] && REPOS=${PPG12_2_REPOS:-}
+  [[ ${NAME} = pdmysql8.0 ]] && REPOS=${PDMYSQL80_REPOS:-}
+  [[ ${NAME} = pdmysql8.0.18 ]] && REPOS=${PDMYSQL80_18_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} = pxc80 ]] || [[ ${NAME} = ppg11 ]] || [[ ${NAME} = ppg11.5 ]] || [[ ${NAME} = ppg11.6 ]] || [[ ${NAME} = ppg11.7 ]] || [[ ${NAME} = ppg12 ]] || [[ ${NAME} = ppg12.1 ]]; then
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} = pxc80 ]] || [[ ${NAME} = ppg11 ]] || [[ ${NAME} = ppg11.5 ]] || [[ ${NAME} = ppg11.6 ]] || [[ ${NAME} = ppg11.7 ]] || [[ ${NAME} = ppg12 ]] || [[ ${NAME} = ppg12.2 ]] || [[ ${NAME} = pdmysql8.0 ]] || [[ ${NAME} = pdmysql8.0.18 ]]; then
     disable_dnf_module ${NAME}
   fi
   for _repo in ${REPOS}; do
