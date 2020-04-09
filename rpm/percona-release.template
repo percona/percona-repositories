@@ -42,7 +42,10 @@ Source2:      RPM-GPG-KEY-Percona
 
 %post
 #
-rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+OS=$(uname -r | cut -d '.' -f6 | awk -F'_' '{print $1}')
+if [ "x${OS}" != "xel8" ]; then
+    rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+fi
 #
 %{_bindir}/percona-release enable original
 #
