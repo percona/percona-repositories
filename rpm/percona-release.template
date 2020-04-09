@@ -42,7 +42,9 @@ Source2:      RPM-GPG-KEY-Percona
 
 %post
 #
+%if 0%{?rhel} < 8
 rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
+%endif
 #
 %{_bindir}/percona-release enable original
 #
