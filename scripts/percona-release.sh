@@ -314,7 +314,9 @@ function enable_alias {
 }
 #
 function check_setup_command {
-  if [[ -n ${2} ]]; then
+  if [[ "$1" == "-y" || "${!#}" == "-y" ]]; then
+      export INTERACTIVE=no
+  elif [[ -n ${2} ]]; then
     echo "* \"setup\" command does not accept additional options!"
     show_help
     exit 2
@@ -343,7 +345,7 @@ case $1 in
     check_setup_command $@
     echo "* Disabling all Percona Repositories"
     disable_repository all all
-    enable_alias $@
+    enable_alias ${@##-*}
     ;;
   disable )
     shift
