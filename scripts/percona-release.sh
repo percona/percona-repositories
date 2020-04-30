@@ -10,7 +10,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg12 ppg12.2 pdmdb4.2 pdmdb4.2.2 pdmysql8.0.18 pdmysql8.0"
-COMMANDS="enable enable-only setup disable"
+COMMANDS="-y enable enable-only setup disable"
 REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-12 ppg-12.2 pdmdb-4.2 pdmdb-4.2.2 pdmysql-8.0 pdmysql-8.0.18"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
@@ -327,16 +327,23 @@ if [[ ${COMMANDS} != *${1}* ]]; then
   exit 2
 fi
 #
+while true; do
 case $1 in
+  -y ) 
+    shift
+    export INTERACTIVE=no
+    ;;
   enable )
     shift
     enable_repository $@
+    break
     ;;
   enable-only )
     shift
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_repository $@
+    break
     ;;
   setup )
     shift
@@ -344,16 +351,19 @@ case $1 in
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_alias $@
+    break
     ;;
   disable )
     shift
     disable_repository $@
+    break
     ;;
   * )
     show_help
     exit 3
     ;;
 esac
+done
 #
 if [[ ${AUTOUPDATE} = NO ]]; then
   show_message
