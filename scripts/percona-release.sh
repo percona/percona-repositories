@@ -120,11 +120,13 @@ function show_help {
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
   echo "  Example: $(basename ${0}) setup ps57"
+  echo "  Example: $(basename ${0}) setup -y ps57"
   echo
   echo "-> Available commands:       ${COMMANDS}"
   echo "-> Available setup products: ${ALIASES}"
   echo "-> Available repositories:   ${REPOSITORIES}"
   echo "-> Available components:     ${COMPONENTS}"
+  echo "=> The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
   echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
 }
 #
@@ -317,7 +319,7 @@ function check_setup_command {
   if [[ "$1" == "-y" || "${!#}" == "-y" ]]; then
       export INTERACTIVE=no
   elif [[ -n ${2} ]]; then
-    echo "* \"setup\" command does not accept additional options!"
+    echo "* \"setup\" command supports only \"-y\""
     show_help
     exit 2
   fi
