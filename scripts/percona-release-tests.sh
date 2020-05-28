@@ -112,10 +112,12 @@ for _alias in ${ALIASES}; do
   [[ ${_alias} = ppg11.5 ]] && REPOS=${PPG11_5_REPOS:-}
   [[ ${_alias} = ppg11.6 ]] && REPOS=${PPG11_6_REPOS:-}
   [[ ${_alias} = ppg11.7 ]] && REPOS=${PPG11_7_REPOS:-}
+  [[ ${_alias} = ppg11.8 ]] && REPOS=${PPG11_8_REPOS:-}
   [[ ${_alias} = pdmdb4.2.6 ]] && REPOS=${PDMDB_4_2_6_REPOS:-}
   [[ ${_alias} = pdmdb4.2 ]] && REPOS=${PDMDB_4_2_REPOS:-}
   [[ ${_alias} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
   [[ ${_alias} = ppg12.2 ]] && REPOS=${PPG12_2_REPOS:-}
+  [[ ${_alias} = ppg12.3 ]] && REPOS=${PPG12_3_REPOS:-}
   [[ ${_alias} = pdmysql8.0 ]] && REPOS=${PDMYSQL80_REPOS:-}
   [[ ${_alias} = pdmysql8.0.18 ]] && REPOS=${PDMYSQL80_18_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
