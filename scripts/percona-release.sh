@@ -37,6 +37,11 @@ PPG12_2_DESC="Percona Distribution for PostgreSQL 12.2"
 PPG12_3_DESC="Percona Distribution for PostgreSQL 12.3"
 PDMYSQL80_DESC="Percona Distribution for MySQL 8.0"
 PDMYSQL80_18_DESC="Percona Distribution for MySQL 8.0.18"
+PPG_DESC="Percona Distribution for PostgreSQL"
+PDMDB_DESC="Percona Distribution for MongoDB"
+PDPS_DESC="Percona Distribution for MySQL - PS"
+PDPXC_DESC="Percona Distribution for MySQL - PXC"
+
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
@@ -100,6 +105,22 @@ function check_specified_repo {
     echo "ERROR: Unknown repository: ${1}"
     echo "Available repositories are: ${REPOSITORIES}"
     exit 2
+  fi
+}
+#
+function check_repo_availability {
+  if [[ "$2" == "-y" ]]; then
+    REPO_NAME=${3}
+  else
+    REPO_NAME=${2}
+  fi
+  reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/ | head -n 1 | awk '{print $2}')
+  if [[ ${reply} == 200 ]]; then
+    if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
+      REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
+      ALIASES="${REPOSITORIES} ${REPO_ALIAS}"
+      REPOSITORIES="${REPOSITORIES} ${REPO_NAME}"
+    fi
   fi
 }
 #
@@ -236,6 +257,15 @@ function enable_repository {
   [[ ${1} = "ppg-12.3" ]]    && DESCRIPTION=${PPG12_3_DESC}
   [[ ${1} = "pdmysql-8.0" ]]    && DESCRIPTION=${PDMYSQL80_DESC}
   [[ ${1} = "pdmysql-8.0.18" ]]    && DESCRIPTION=${PDMYSQL80_18_DESC}
+  if [[ -z ${DESCRIPTION} ]]; then
+    REPO_NAME=$(echo ${1} | sed 's/-//')
+    name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
+    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
+    [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
+    [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
+    [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
+  fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
   enable_component ${1} ${2}
@@ -260,15 +290,19 @@ function disable_dnf_module {
   REPO_NAME=${1}
   MODULE="mysql"
   PRODUCT="Percona-Server"
-  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg11.7" ]] || [[ ${REPO_NAME} = "ppg12" ]] || [[ ${REPO_NAME} = "ppg12.2" ]] || [[ ${REPO_NAME} = "ppg11.8" ]] || [[ ${REPO_NAME} = "ppg12.3" ]]; then
+  if [[ ${REPO_NAME} == ppg* ]]; then
     MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
-  if [[ ${REPO_NAME} = "pdmysql8.0" ]] || [[ ${REPO_NAME} = "pdmysql8.0.18" ]]; then
+  if [[ ${REPO_NAME} == pdps* ]]; then
     MODULE="mysql"
-    PRODUCT="Percona Distribution for MySQL"
+    PRODUCT="Percona Distribution for MySQL - PS"
   fi
-  if [[ ${REPO_NAME} = "pxc80" ]];  then
+  if [[ ${REPO_NAME} == pdpxc* ]]; then
+    MODULE="mysql"
+    PRODUCT="Percona Distribution for MySQL - PXC"
+  fi
+  if [[ ${REPO_NAME} = pxc* ]];  then
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
@@ -315,10 +349,15 @@ function enable_alias {
   [[ ${NAME} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
   [[ ${NAME} = ppg12.2 ]] && REPOS=${PPG12_2_REPOS:-}
   [[ ${NAME} = ppg12.3 ]] && REPOS=${PPG12_3_REPOS:-}
-  [[ ${NAME} = pdmysql8.0 ]] && REPOS=${PDMYSQL80_REPOS:-}
-  [[ ${NAME} = pdmysql8.0.18 ]] && REPOS=${PDMYSQL80_18_REPOS:-}
-  [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} = pxc80 ]] || [[ ${NAME} = ppg11 ]] || [[ ${NAME} = ppg11.5 ]] || [[ ${NAME} = ppg11.6 ]] || [[ ${NAME} = ppg11.7 ]] || [[ ${NAME} = ppg11.8 ]] || [[ ${NAME} = ppg12 ]] || [[ ${NAME} = ppg12.2 ]] || [[ ${NAME} = ppg12.3 ]] || [[ ${NAME} = pdmysql8.0 ]] || [[ ${NAME} = pdmysql8.0.18 ]]; then
+  if [ -z "${REPOS}" ]; then
+    name=$(echo ${NAME} | sed 's/[0-9].*//g')
+    version=$(echo ${NAME} | sed 's/[a-z]*//g')
+    [[ ${name} = "ppg" ]] && REPOS="$name-$version"
+    [[ ${name} = "pdmdb" ]] && REPOS="$name-$version"
+    [[ ${name} = "pdps" ]] && REPOS="$name-$version"
+    [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
+  fi
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]]; then
     disable_dnf_module ${NAME}
   fi
   for _repo in ${REPOS}; do
@@ -343,6 +382,7 @@ if [[ ${COMMANDS} != *${1}* ]]; then
   exit 2
 fi
 #
+check_repo_availability $@
 case $1 in
   enable )
     shift
