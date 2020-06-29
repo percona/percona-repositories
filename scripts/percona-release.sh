@@ -39,6 +39,10 @@ PDPXC80_19_DESC="Percona Distribution for MySQL 8.0.19 - PXC"
 PDPS80_19_DESC="Percona Distribution for MySQL 8.0.19 - PS"
 PDPS80_DESC="Percona Distribution for MySQL 8.0 - PS"
 PDPXC80_DESC="Percona Distribution for MySQL 8.0 - PXC"
+PPG_DESC="Percona Distribution for PostgreSQL"
+PDMDB_DESC="Percona Distribution for MongoDB"
+PDPS_DESC="Percona Distribution for MySQL - PS"
+PDPXC_DESC="Percona Distribution for MySQL - PXC"
 #
 PS80REPOS="ps-80 tools"
 PXC80REPOS="pxc-80 tools"
@@ -103,6 +107,49 @@ function check_specified_repo {
   if [[ ${found} = NO ]]; then
     echo "ERROR: Unknown repository: ${1}"
     echo "Available repositories are: ${REPOSITORIES}"
+    exit 2
+  fi
+}
+#
+function check_os_support {
+   REPO_NAME=$1
+   if [[ ${PKGTOOL} = yum ]]; then
+    if [ -f /etc/os-release ]; then
+      OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' )
+    else
+      OS_VER=$(cat /etc/system-release | awk '{print $3}' | awk -F'.' '{print $1}')
+    fi
+    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+  elif [[ ${PKGTOOL} = "apt-get" ]]; then
+    OS_VER=$(lsb_release -sc)
+    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+  fi
+  if [[ ${reply} != 200 ]]; then
+      echo "Specified repository is not supported for current operation system!"
+      exit 2
+  fi
+}
+#
+function check_repo_availability {
+  if [[ "$2" == "-y" ]]; then
+    REPO_NAME=${3}
+  else
+    REPO_NAME=${2}
+  fi
+  [[ ${REPO_NAME} == "all" ]] && return 0
+
+  REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
+  REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
+  reply=$(curl -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
+  if [[ ${reply} == 200 ]]; then
+    if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
+      REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
+      ALIASES="${REPOSITORIES} ${REPO_ALIAS}"
+      REPOSITORIES="${REPOSITORIES} ${REPO_NAME}"
+      check_os_support ${REPO_NAME}
+    fi
+  else
+    echo "Specified repository does not exist: ${REPO_LINK}"
     exit 2
   fi
 }
@@ -242,6 +289,15 @@ function enable_repository {
   [[ ${1} = "pdpxc-8.0" ]]    && DESCRIPTION=${PDPXC80_DESC}
   [[ ${1} = "pdps-8.0.19" ]]    && DESCRIPTION=${PDMYSQL80_19_DESC}
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
+  if [[ -z ${DESCRIPTION} ]]; then
+    REPO_NAME=$(echo ${1} | sed 's/-//')
+    name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
+    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
+    [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
+    [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
+    [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
+  fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
   enable_component ${1} ${2}
@@ -266,19 +322,19 @@ function disable_dnf_module {
   REPO_NAME=${1}
   MODULE="mysql"
   PRODUCT="Percona-Server"
-  if [[ ${REPO_NAME} = "ppg11" ]] || [[ ${REPO_NAME} = "ppg11.5" ]] || [[ ${REPO_NAME} = "ppg11.6" ]] || [[ ${REPO_NAME} = "ppg11.7" ]] || [[ ${REPO_NAME} = "ppg12" ]] || [[ ${REPO_NAME} = "ppg12.2" ]] || [[ ${REPO_NAME} = "ppg11.8" ]] || [[ ${REPO_NAME} = "ppg12.3" ]]; then
+  if [[ ${REPO_NAME} == ppg* ]]; then
     MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
-  if [[ ${REPO_NAME} = "pdps8.0" ]] || [[ ${REPO_NAME} = "pdps8.0.19" ]]; then
+  if [[ ${REPO_NAME} == pdps* ]]; then
     MODULE="mysql"
     PRODUCT="Percona Distribution for MySQL - PS"
   fi
-  if [[ ${REPO_NAME} = "pdpxc8.0" ]] || [[ ${REPO_NAME} = "pdpxc8.0.19" ]]; then
+  if [[ ${REPO_NAME} == pdpxc* ]]; then
     MODULE="mysql"
     PRODUCT="Percona Distribution for MySQL - PXC"
   fi
-  if [[ ${REPO_NAME} = "pxc80" ]];  then
+  if [[ ${REPO_NAME} = pxc* ]];  then
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
@@ -329,8 +385,15 @@ function enable_alias {
   [[ ${NAME} = pdps8.0.19 ]] && REPOS=${PDPS80_19_REPOS:-}
   [[ ${NAME} = pdpxc8.0 ]] && REPOS=${PDPXC80_REPOS:-}
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
-  [[ -z ${REPOS} ]] && REPOS="original tools"
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} = pxc80 ]] || [[ ${NAME} = ppg11 ]] || [[ ${NAME} = ppg11.5 ]] || [[ ${NAME} = ppg11.6 ]] || [[ ${NAME} = ppg11.7 ]] || [[ ${NAME} = ppg11.8 ]] || [[ ${NAME} = ppg12 ]] || [[ ${NAME} = ppg12.2 ]] || [[ ${NAME} = ppg12.3 ]] || [[ ${NAME} = pdps8.0 ]] || [[ ${NAME} = pdps8.0.19 ]] || [[ ${NAME} = pdpxc8.0 ]] || [[ ${NAME} = pdpxc8.0.19 ]]; then
+  if [ -z "${REPOS}" ]; then
+    name=$(echo ${NAME} | sed 's/[0-9].*//g')
+    version=$(echo ${NAME} | sed 's/[a-z]*//g')
+    [[ ${name} = "ppg" ]] && REPOS="$name-$version"
+    [[ ${name} = "pdmdb" ]] && REPOS="$name-$version"
+    [[ ${name} = "pdps" ]] && REPOS="$name-$version"
+    [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
+  fi
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]]; then
     disable_dnf_module ${NAME}
   fi
   for _repo in ${REPOS}; do
@@ -355,6 +418,7 @@ if [[ ${COMMANDS} != *${1}* ]]; then
   exit 2
 fi
 #
+check_repo_availability $@
 case $1 in
   enable )
     shift
