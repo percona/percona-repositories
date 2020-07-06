@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdps8.0.19 pdpxc8.0.19 pdps8.0 pdpxc8.0"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdpxc8.0.19 pdps8.0 pdpxc8.0"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0 pdpxc-8.0"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0 pdpxc-8.0"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -32,6 +32,7 @@ PPG11_8_DESC="Percona Distribution for PostgreSQL 11.8"
 PDMDB4_2_DESC="Percona Distribution for MongoDB 4.2"
 PDMDB4_2_6_DESC="Percona Distribution for MongoDB 4.2.6"
 PDMDB4_2_7_DESC="Percona Distribution for MongoDB 4.2.7"
+PDMDB4_2_8_DESC="Percona Distribution for MongoDB 4.2.8"
 PPG12_DESC="Percona Distribution for PostgreSQL 12"
 PPG12_2_DESC="Percona Distribution for PostgreSQL 12.2"
 PPG12_3_DESC="Percona Distribution for PostgreSQL 12.3"
@@ -52,6 +53,7 @@ PPG11_7_REPOS="ppg-11.7"
 PPG11_8_REPOS="ppg-11.8"
 PDMDB4_2_6_REPOS="pdmdb-4.2.6"
 PDMDB4_2_7_REPOS="pdmdb-4.2.7"
+PDMDB4_2_8_REPOS="pdmdb-4.2.8"
 PDMDB4_2_REPOS="pdmdb-4.2"
 PPG12_REPOS="ppg-12"
 PPG12_2_REPOS="ppg-12.2"
@@ -235,6 +237,7 @@ function enable_repository {
   [[ ${1} = "pdmdb-4.2" ]]    && DESCRIPTION=${PDMDB4_2_DESC}
   [[ ${1} = "pdmdb-4.2.6" ]]    && DESCRIPTION=${PDMDB4_2_6_DESC}
   [[ ${1} = "pdmdb-4.2.7" ]]    && DESCRIPTION=${PDMDB4_2_7_DESC}
+  [[ ${1} = "pdmdb-4.2.8" ]]    && DESCRIPTION=${PDMDB4_2_8_DESC}
   [[ ${1} = "ppg-12" ]]    && DESCRIPTION=${PPG12_DESC}
   [[ ${1} = "ppg-12.2" ]]    && DESCRIPTION=${PPG12_2_DESC}
   [[ ${1} = "ppg-12.3" ]]    && DESCRIPTION=${PPG12_3_DESC}
@@ -322,6 +325,7 @@ function enable_alias {
   [[ ${NAME} = pdmdb4.2 ]] && REPOS=${PDMDB4_2_REPOS:-}
   [[ ${NAME} = pdmdb4.2.6 ]] && REPOS=${PDMDB4_2_6_REPOS:-}
   [[ ${NAME} = pdmdb4.2.7 ]] && REPOS=${PDMDB4_2_7_REPOS:-}
+  [[ ${NAME} = pdmdb4.2.8 ]] && REPOS=${PDMDB4_2_8_REPOS:-}
   [[ ${NAME} = ppg12 ]] && REPOS=${PPG12_REPOS:-}
   [[ ${NAME} = ppg12.2 ]] && REPOS=${PPG12_2_REPOS:-}
   [[ ${NAME} = ppg12.3 ]] && REPOS=${PPG12_3_REPOS:-}
