@@ -29,6 +29,7 @@ case "$1" in
     configure)
       eval "/usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring.gpg  ${SUPRESSOR}"
       /usr/bin/percona-release enable original
+      /usr/bin/percona-release enable prel release
       if [[ -f  ${OLDREPOFILE} ]]; then
         mv -f ${OLDREPOFILE} ${OLDREPOFILE}.bak
       fi
