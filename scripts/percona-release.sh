@@ -9,15 +9,16 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0"
+REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
+PREL_DESC="Percona Release"
 PS80_DESC="Percona Server 8.0"
 PXB80_DESC="Percona XtraBackup 8.0"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
@@ -68,6 +69,7 @@ PDPXC80_REPOS="pdpxc-8.0"
 PDPS80_19_REPOS="pdps-8.0.19"
 PDPS80_20_REPOS="pdps-8.0.20"
 PDPXC80_19_REPOS="pdpxc-8.0.19"
+PREL_REPOS="prel"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -265,11 +267,19 @@ function disable_component {
   local _repo=percona-${1}
   if [[ ${2} = all ]] || [[ -z ${2} ]]; then
     for _component in ${COMPONENTS}; do
-      mv -f ${LOCATION}/${_repo}-${_component}.${EXT} ${LOCATION}/${_repo}-${_component}.${EXT}.bak 2>/dev/null
+      if [[ ${_repo} != *prel ]]; then
+        mv -f ${LOCATION}/${_repo}-${_component}.${EXT} ${LOCATION}/${_repo}-${_component}.${EXT}.bak 2>/dev/null
+      fi
     done
   else
     check_specified_component ${2}
-    mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
+    if [[ ${_repo} != *prel ]]; then
+      mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
+    else
+      if [[ ${2} != "release" ]]; then
+        mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
+      fi
+    fi
   fi
 }
 #
@@ -298,6 +308,7 @@ function enable_repository {
   [[ ${1} = "pdps-8.0.19" ]]    && DESCRIPTION=${PDMYSQL80_19_DESC}
   [[ ${1} = "pdps-8.0.20" ]]    && DESCRIPTION=${PDMYSQL80_20_DESC}
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
+  [[ ${1} = "prel" ]]    && DESCRIPTION=${PREL_DESC}
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
@@ -318,11 +329,22 @@ function disable_repository {
   if [[ ${1} = all ]]; then
     _repos=${REPOSITORIES}
     for _repository in ${_repos}; do
-      disable_component ${_repository} ${2}
+      if [[ ${_repository} != "prel" ]]; then
+        disable_component ${_repository} ${2}
+      else
+          disable_component ${_repository} experimental
+          disable_component ${_repository} testing
+      fi
     done
   else
     check_specified_repo ${1}
-    disable_component ${1} ${2}
+    if [[ ${1} != "prel" ]]; then
+      disable_component ${1} ${2}
+    else
+      if [[ ${2} != "release" ]]; then
+        disable_component ${1} ${2}
+      fi
+    fi
   fi
   MODIFIED=YES
 }
@@ -396,6 +418,7 @@ function enable_alias {
   [[ ${NAME} = pdps8.0.20 ]] && REPOS=${PDPS80_20_REPOS:-}
   [[ ${NAME} = pdpxc8.0 ]] && REPOS=${PDPXC80_REPOS:-}
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
+  [[ ${NAME} = prel ]] && REPOS=${PREL_REPOS:-}
   if [ -z "${REPOS}" ]; then
     name=$(echo ${NAME} | sed 's/[0-9].*//g')
     version=$(echo ${NAME} | sed 's/[a-z]*//g')
