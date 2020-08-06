@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb24 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel proxysql sysbench pt pmm-client pmm2-client mysql-shell pbm"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel"
+REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -19,9 +19,22 @@ URL="http://repo.percona.com"
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
 PREL_DESC="Percona Release"
+PT_DESC="Percona Toolkit"
+SYSBENCH_DESC="Sysbench"
+PROXYSQL_DESC="Proxysql"
+PBM_DESC="Percona Backup MongoDB"
+MYSQL_SHELL_DESC="Percona MySQL Shell"
+PMM_CLIENT_DESC="PMM Client"
+PMM2_CLIENT_DESC="PMM2 Client"
+PS56_DESC="Percona Server 5.6"
+PS56_DESC="Percona Server 5.7"
 PS80_DESC="Percona Server 8.0"
+PXB24_DESC="Percona XtraBackup 2.4"
 PXB80_DESC="Percona XtraBackup 8.0"
+PXC56_DESC="Percona XtraDB Cluster 5.6"
+PXC57_DESC="Percona XtraDB Cluster 5.7"
 PXC80_DESC="Percona XtraDB Cluster 8.0"
+PSMDB36_DESC="Percona Server for MongoDB 3.6"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 PSMDB42_DESC="Percona Server for MongoDB 4.2"
 TOOLS_DESC="Percona Tools"
@@ -47,9 +60,15 @@ PDMDB_DESC="Percona Distribution for MongoDB"
 PDPS_DESC="Percona Distribution for MySQL - PS"
 PDPXC_DESC="Percona Distribution for MySQL - PXC"
 #
+PS56REPOS="ps-56 tools"
+PS57REPOS="ps-57 pxb-24"
 PS80REPOS="ps-80 tools"
+PXC56REPOS="pxc-56 tools"
+PXC57REPOS="pxc-57 pxb-24"
 PXC80REPOS="pxc-80 tools"
-PXB80REPOS="tools"
+PXB24REPOS="pxb-24"
+PXB80REPOS="pxb-80"
+PSMDB36REPOS="psmdb-36 pbm"
 PSMDB40REPOS="psmdb-40 tools"
 PSMDB42REPOS="psmdb-42 tools"
 PPG11REPOS="ppg-11"
@@ -70,6 +89,13 @@ PDPS80_19_REPOS="pdps-8.0.19"
 PDPS80_20_REPOS="pdps-8.0.20"
 PDPXC80_19_REPOS="pdpxc-8.0.19"
 PREL_REPOS="prel"
+PROXYSQL_REPOS="proxysql"
+SYSBENCH_REPOS="sysbench"
+PT_REPOS="pt"
+MYSQL_SHELL_REPOS="mysql-shell"
+PBM_REPOS="PBM"
+PMM_CLIENT_REPOS="pmm-client"
+PMM2_CLIENT_REPOS="pmm2-client"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -144,8 +170,9 @@ function check_repo_availability {
   fi
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
-
-  REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
+  if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" ]; then
+    REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
+  fi
   REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
   reply=$(curl -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
@@ -285,9 +312,15 @@ function disable_component {
 #
 function enable_repository {
   check_specified_repo ${1}
+  [[ ${1} = "ps-56" ]]    && DESCRIPTION=${PS56_DESC}
+  [[ ${1} = "ps-57" ]]    && DESCRIPTION=${PS57_DESC}
   [[ ${1} = "ps-80" ]]    && DESCRIPTION=${PS80_DESC}
+  [[ ${1} = "pxc-56" ]]   && DESCRIPTION=${PXC56_DESC}
+  [[ ${1} = "pxc-57" ]]   && DESCRIPTION=${PXC57_DESC}
   [[ ${1} = "pxc-80" ]]   && DESCRIPTION=${PXC80_DESC}
+  [[ ${1} = "pxb-24" ]]   && DESCRIPTION=${PXB24_DESC}
   [[ ${1} = "pxb-80" ]]   && DESCRIPTION=${PXB80_DESC}
+  [[ ${1} = "psmdb-36" ]]  && DESCRIPTION=${PSMDB36_DESC}
   [[ ${1} = "psmdb-40" ]]  && DESCRIPTION=${PSMDB40_DESC}
   [[ ${1} = "psmdb-42" ]]  && DESCRIPTION=${PSMDB42_DESC}
   [[ ${1} = "tools" ]]    && DESCRIPTION=${TOOLS_DESC}
@@ -309,6 +342,13 @@ function enable_repository {
   [[ ${1} = "pdps-8.0.20" ]]    && DESCRIPTION=${PDMYSQL80_20_DESC}
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
   [[ ${1} = "prel" ]]    && DESCRIPTION=${PREL_DESC}
+  [[ ${1} = "proxysql" ]]    && DESCRIPTION=${PROXYSQL_DESC}
+  [[ ${1} = "sysbench" ]]    && DESCRIPTION=${SYSBENCH_DESC}
+  [[ ${1} = "pt" ]]    && DESCRIPTION=${PT_DESC}
+  [[ ${1} = "pbm" ]]    && DESCRIPTION=${PBM_DESC}
+  [[ ${1} = "mysql-shell" ]]    && DESCRIPTION=${MYSQL_SHELL_DESC}
+  [[ ${1} = "pmm-client" ]]    && DESCRIPTION=${PMM_CLIENT_DESC}
+  [[ ${1} = "pmm2-client" ]]    && DESCRIPTION=${PMM2_CLIENT_DESC}
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
@@ -396,9 +436,15 @@ function enable_alias {
   local REPOS=""
   local NAME=$( echo ${1} | sed 's/-//' )
   check_specified_alias ${NAME}
+  [[ ${NAME} = ps56 ]] && REPOS=${PS56REPOS:-}
+  [[ ${NAME} = ps57 ]] && REPOS=${PS57REPOS:-}
   [[ ${NAME} = ps80 ]] && REPOS=${PS80REPOS:-}
+  [[ ${NAME} = pxc56 ]] && REPOS=${PXC56REPOS:-}
+  [[ ${NAME} = pxc57 ]] && REPOS=${PXC57REPOS:-}
   [[ ${NAME} = pxc80 ]] && REPOS=${PXC80REPOS:-}
+  [[ ${NAME} = pxb24 ]] && REPOS=${PXB24REPOS:-}
   [[ ${NAME} = pxb80 ]] && REPOS=${PXB80REPOS:-}
+  [[ ${NAME} = psmdb36 ]] && REPOS=${PSMDB36REPOS:-}
   [[ ${NAME} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
   [[ ${NAME} = psmdb42 ]] && REPOS=${PSMDB42REPOS:-}
   [[ ${NAME} = ppg11 ]] && REPOS=${PPG11REPOS:-}
@@ -419,13 +465,22 @@ function enable_alias {
   [[ ${NAME} = pdpxc8.0 ]] && REPOS=${PDPXC80_REPOS:-}
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
   [[ ${NAME} = prel ]] && REPOS=${PREL_REPOS:-}
-  if [ -z "${REPOS}" ]; then
-    name=$(echo ${NAME} | sed 's/[0-9].*//g')
-    version=$(echo ${NAME} | sed 's/[a-z]*//g')
-    [[ ${name} = "ppg" ]] && REPOS="$name-$version"
-    [[ ${name} = "pdmdb" ]] && REPOS="$name-$version"
-    [[ ${name} = "pdps" ]] && REPOS="$name-$version"
-    [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
+  [[ ${NAME} = proxysql ]] && REPOS=${PROXYSQL_REPOS:-}
+  [[ ${NAME} = sysbench ]] && REPOS=${SYSBENCH_REPOS:-}
+  [[ ${NAME} = pt ]] && REPOS=${PT_REPOS:-}
+  [[ ${NAME} = pbm ]] && REPOS=${PBM_REPOS:-}
+  [[ ${NAME} = mysqlshell ]] && REPOS=${MYSQL_SHELL_REPOS:-}
+  [[ ${NAME} = pmmclient ]] && REPOS=${PMM_CLIENT_REPOS:-}
+  [[ ${NAME} = pmm2client ]] && REPOS=${PMM2_CLIENT_REPOS:-}
+  if [[ -z ${DESCRIPTION} ]]; then
+    if [[ -z "${REPOS}" ]]; then
+      name=$(echo ${NAME} | sed 's/[0-9].*//g')
+      version=$(echo ${NAME} | sed 's/[a-z]*//g')
+      [[ ${name} = "ppg" ]] && REPOS="$name-$version"
+      [[ ${name} = "pdmdb" ]] && REPOS="$name-$version"
+      [[ ${name} = "pdps" ]] && REPOS="$name-$version"
+      [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
+    fi
   fi
   if [[ ${NAME} = ps80 ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]]; then
     disable_dnf_module ${NAME}

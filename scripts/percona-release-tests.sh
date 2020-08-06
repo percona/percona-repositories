@@ -103,9 +103,15 @@ rm -fv ${LOCATION}/*.bak
 #
 for _alias in ${ALIASES}; do
   REPOS=""
+  [[ ${_alias} = ps56 ]] && REPOS=${PS56REPOS:-}
+  [[ ${_alias} = ps57 ]] && REPOS=${PS57REPOS:-}
   [[ ${_alias} = ps80 ]] && REPOS=${PS80REPOS:-}
+  [[ ${_alias} = pxc56 ]] && REPOS=${PXC56REPOS:-}
+  [[ ${_alias} = pxc57 ]] && REPOS=${PXC57REPOS:-}
   [[ ${_alias} = pxc80 ]] && REPOS=${PXC80REPOS:-}
+  [[ ${_alias} = pxb24 ]] && REPOS=${PXB24REPOS:-}
   [[ ${_alias} = pxb80 ]] && REPOS=${PXB80REPOS:-}
+  [[ ${_alias} = psmdb36 ]] && REPOS=${PSMDB36REPOS:-}
   [[ ${_alias} = psmdb40 ]] && REPOS=${PSMDB40REPOS:-}
   [[ ${_alias} = psmdb42 ]] && REPOS=${PSMDB42REPOS:-}
   [[ ${_alias} = ppg11 ]] && REPOS=${PPG11REPOS:-}
@@ -126,6 +132,13 @@ for _alias in ${ALIASES}; do
   [[ ${_alias} = pdps8.0.19 ]] && REPOS=${PDPS80_19_REPOS:-}
   [[ ${_alias} = pdps8.0.20 ]] && REPOS=${PDPS80_20_REPOS:-}
   [[ ${_alias} = prel ]] && REPOS=${PREL_REPOS:-}
+  [[ ${_alias} = proxysql ]] && REPOS=${PROXYSQL_REPOS:-}
+  [[ ${_alias} = sysbench ]] && REPOS=${SYSBENCH_REPOS:-}
+  [[ ${_alias} = pt ]] && REPOS=${PT_REPOS:-}
+  [[ ${_alias} = pbm ]] && REPOS=${PBM_REPOS:-}
+  [[ ${_alias} = mysqlshell ]] && REPOS=${MYSQL_SHELL_REPOS:-}
+  [[ ${_alias} = pmmclient ]] && REPOS=${PMM_CLIENT_REPOS:-}
+  [[ ${_alias} = pmm2client ]] && REPOS=${PMM2_CLIENT_REPOS:-}
   [[ -z ${REPOS} ]] && REPOS="original tools"
     ./${SCRIPT} setup ${_alias}
     for _repository in ${REPOS}; do
