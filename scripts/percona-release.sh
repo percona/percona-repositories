@@ -147,7 +147,7 @@ function check_os_support {
    REPO_NAME=$1
    if [[ ${PKGTOOL} = yum ]]; then
     if [ -f /etc/os-release ]; then
-      OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' )
+      OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
     else
       OS_VER=$(cat /etc/system-release | awk '{print $3}' | awk -F'.' '{print $1}')
     fi
