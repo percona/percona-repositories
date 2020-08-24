@@ -9,9 +9,9 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb24 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel proxysql sysbench pt pmm-client pmm2-client mysql-shell pbm"
+ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb24 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel proxysql sysbench pt pmm-client pmm2-client mysql-shell pbm pdmdb4.4 pdmdb4.4.0 psmdb44"
 COMMANDS="enable enable-only setup disable"
-REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client"
+REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
@@ -27,7 +27,7 @@ MYSQL_SHELL_DESC="Percona MySQL Shell"
 PMM_CLIENT_DESC="PMM Client"
 PMM2_CLIENT_DESC="PMM2 Client"
 PS56_DESC="Percona Server 5.6"
-PS56_DESC="Percona Server 5.7"
+PS57_DESC="Percona Server 5.7"
 PS80_DESC="Percona Server 8.0"
 PXB24_DESC="Percona XtraBackup 2.4"
 PXB80_DESC="Percona XtraBackup 8.0"
@@ -211,8 +211,8 @@ function show_help {
   echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT]"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
-  echo "  Example: $(basename ${0}) setup ps57"
-  echo "  Example: $(basename ${0}) setup -y ps57"
+  echo "  Example: $(basename ${0}) setup ps57 | setup-57"
+  echo "  Example: $(basename ${0}) setup -y ps57 | setup -y ps-57"
   echo
   echo "-> Available commands:       ${COMMANDS}"
   echo "-> Available setup products: ${ALIASES}"
@@ -293,10 +293,8 @@ function enable_component {
 function disable_component {
   local _repo=percona-${1}
   if [[ ${2} = all ]] || [[ -z ${2} ]]; then
-    for _component in ${COMPONENTS}; do
-      if [[ ${_repo} != *prel ]]; then
-        mv -f ${LOCATION}/${_repo}-${_component}.${EXT} ${LOCATION}/${_repo}-${_component}.${EXT}.bak 2>/dev/null
-      fi
+    for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*"); do
+      mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
   else
     check_specified_component ${2}
