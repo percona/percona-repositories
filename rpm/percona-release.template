@@ -6,6 +6,7 @@ License:      GPL-3.0+
 Group:        System Environment/Base
 BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
+Requires:     findutils
 Source0:      PERCONA-PACKAGING-KEY
 Source1:      percona-release.sh
 Source2:      RPM-GPG-KEY-Percona
