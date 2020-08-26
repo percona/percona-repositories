@@ -234,6 +234,7 @@ function create_yum_repo {
   local _repo=${1}
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
+  [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   for _key in ${ARCH_LIST}; do
     echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
