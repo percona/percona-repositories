@@ -168,6 +168,7 @@ function check_repo_availability {
   else
     REPO_NAME=${2}
   fi
+  [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
   if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" ]; then
