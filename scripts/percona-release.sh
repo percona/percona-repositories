@@ -546,7 +546,7 @@ case $1 in
     ;;
   show )
     shift
-    show
+    show_enabled
     ;;
   * )
     show_help
