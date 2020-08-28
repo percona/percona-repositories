@@ -393,11 +393,10 @@ function disable_repository {
     _repos=${REPOSITORIES}
     for _repository in ${_repos}; do
       if [[ ${_repository} != "prel" ]]; then
-        disable_component ${_repository} ${2}
-      else
-          disable_component ${_repository} experimental
-          disable_component ${_repository} testing
+        disable_component ${_repository} release 
       fi
+      disable_component ${_repository} experimental
+      disable_component ${_repository} testing
     done
   else
     check_specified_repo ${1}
