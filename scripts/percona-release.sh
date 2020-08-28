@@ -96,6 +96,8 @@ MYSQL_SHELL_REPOS="mysql-shell"
 PBM_REPOS="PBM"
 PMM_CLIENT_REPOS="pmm-client"
 PMM2_CLIENT_REPOS="pmm2-client"
+TOOLS_REPOS="tools"
+ORIGINAL_REPO="original"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -493,6 +495,9 @@ function enable_alias {
   [[ ${NAME} = mysqlshell ]] && REPOS=${MYSQL_SHELL_REPOS:-}
   [[ ${NAME} = pmmclient ]] && REPOS=${PMM_CLIENT_REPOS:-}
   [[ ${NAME} = pmm2client ]] && REPOS=${PMM2_CLIENT_REPOS:-}
+  [[ ${NAME} = tools ]] && REPOS=${TOOLS_REPOS:-}
+  [[ ${NAME} = original ]] && REPOS=${ORIGINAL_REPOS:-}
+  [[ ${NAME} = percona ]] && REPOS=${ORIGINAL_REPOS:-}
   if [[ -z ${DESCRIPTION} ]]; then
     if [[ -z "${REPOS}" ]]; then
       name=$(echo ${NAME} | sed 's/[0-9].*//g')
