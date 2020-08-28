@@ -119,9 +119,9 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    yum repolist enabled | egrep -i 'percona|sysbench'
+    yum repolist enabled | egrep -ie "percona|sysbench" | awk '{print $1}' | awk -F'-' '{print $1"-"$3,"-",$2}' | sed 's;percona;original;g' | sed 's;/.*\s; - ;'
   elif [[ -f /etc/debian_version ]]; then
-     grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | cut -f2 -d' ' |sed -re 's#http://ppa\.launchpad\.net/([^/]+)/([^/]+)(.*?)$#ppa:\1/\2#g' | grep percona
+    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep percona | awk '{print $2$4}' | sed 's;http://repo.percona.com/;;g' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
     echo "==>> ERROR: Unsupported system"
     exit 1
