@@ -119,7 +119,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    yum repolist enabled | grep -i percona
+    yum repolist enabled | egrep -i 'percona|sysbench'
   elif [[ -f /etc/debian_version ]]; then
      grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | cut -f2 -d' ' |sed -re 's#http://ppa\.launchpad\.net/([^/]+)/([^/]+)(.*?)$#ppa:\1/\2#g' | grep percona
   else
