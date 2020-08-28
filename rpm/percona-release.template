@@ -48,7 +48,7 @@ if [ "x${OS}" != "x8" ]; then
     rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 fi
 #
-%{_bindir}/percona-release enable original
+%{_bindir}/percona-release enable original release
 %{_bindir}/percona-release enable prel release
 #
 cat << EOF
