@@ -117,7 +117,7 @@ else
 fi
 #
 function show_enabled {
-  echo "The following repos are enabled on your system:"
+  echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
     yum repolist enabled | grep -i percona
   elif [[ -f /etc/debian_version ]]; then
@@ -308,10 +308,17 @@ function enable_component {
 #
 function disable_component {
   local _repo=percona-${1}
-  if [[ ${2} = all ]] || [[ -z ${2} ]]; then
+  if [[ ${1} = all ]]; then
     for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*"); do
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
+  elif [[ -z ${2} ]]; then
+    for comp in testing experimanral; do
+      mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
+    done
+    if [[ ${_repo} != *prel ]]; then
+      mv -f ${LOCATION}/${_repo}-release.${EXT} ${LOCATION}/${_repo}-release.${EXT}.bak 2>/dev/null
+    fi
   else
     check_specified_component ${2}
     if [[ ${_repo} != *prel ]]; then
