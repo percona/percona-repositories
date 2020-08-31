@@ -33,6 +33,12 @@ case "$1" in
       if [[ -f  ${OLDREPOFILE} ]]; then
         mv -f ${OLDREPOFILE} ${OLDREPOFILE}.bak
       fi
+      for file in $(find /etc/apt/sources.list.d/ -mmin -3 -type f -iname "percona*.list.bak" -not -iname "*prel-release*"); do
+        new_file=$(echo $file | sed 's/.bak//')
+	if [[ $new_file != ${OLDREPOFILE} ]]; then
+          mv $file $new_file
+        fi
+      done
 
 cat << EOF
 The percona-release package now contains a percona-release script that can enable additional repositories for our newer products.
