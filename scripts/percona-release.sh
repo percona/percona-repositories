@@ -121,7 +121,14 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    yum repolist enabled | egrep -ie "percona|sysbench" | awk '{print $1}' | awk -F'-' '{print $1"-"$3,"-",$2}' | sed 's;percona;original;g' | sed 's;/.*\s; - ;'
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+      count=$(grep -o '-' <<< $line | wc -l)
+      if [[ $count = 3 ]]; then
+        echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
+      else
+        echo $line | awk -F '-' '{print $1" - "$2" | " $3}'
+      fi
+    done
   elif [[ -f /etc/debian_version ]]; then
     grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep percona | awk '{print $2$4}' | sed 's;http://repo.percona.com/;;g' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
@@ -390,14 +397,7 @@ function enable_repository {
 function disable_repository {
   local _repos=${1}
   if [[ ${1} = all ]]; then
-    _repos=${REPOSITORIES}
-    for _repository in ${_repos}; do
-      if [[ ${_repository} != "prel" ]]; then
-        disable_component ${_repository} release 
-      fi
-      disable_component ${_repository} experimental
-      disable_component ${_repository} testing
-    done
+    disable_component all
   else
     check_specified_repo ${1}
     if [[ ${1} != "prel" ]]; then
