@@ -10,7 +10,7 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb24 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel proxysql sysbench pt pmm-client pmm2-client mysql-shell pbm pdmdb4.4 pdmdb4.4.0 psmdb44"
-COMMANDS="enable enable-only setup disable"
+COMMANDS="enable enable-only setup disable show"
 REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
@@ -96,6 +96,8 @@ MYSQL_SHELL_REPOS="mysql-shell"
 PBM_REPOS="PBM"
 PMM_CLIENT_REPOS="pmm-client"
 PMM2_CLIENT_REPOS="pmm2-client"
+TOOLS_REPOS="tools"
+ORIGINAL_REPO="original"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -115,6 +117,25 @@ else
   echo "==>> ERROR: Unsupported system"
   exit 1
 fi
+#
+function show_enabled {
+  echo "The following repositories are enabled on your system:"
+  if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+      count=$(grep -o '-' <<< $line | wc -l)
+      if [[ $count = 3 ]]; then
+        echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
+      else
+        echo $line | awk -F '-' '{print $1" - "$2" | " $3}'
+      fi
+    done
+  elif [[ -f /etc/debian_version ]]; then
+    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep percona | awk '{print $2$4}' | sed 's;http://repo.percona.com/;;g' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
+  else
+    echo "==>> ERROR: Unsupported system"
+    exit 1
+  fi
+}
 #
 function check_specified_alias {
   local found=NO
@@ -168,6 +189,7 @@ function check_repo_availability {
   else
     REPO_NAME=${2}
   fi
+  [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
   if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" ]; then
@@ -208,17 +230,19 @@ function show_message {
 #
 function show_help {
   echo
-  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT]"
+  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT] | show"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
   echo "  Example: $(basename ${0}) setup ps57 | setup-57"
   echo "  Example: $(basename ${0}) setup -y ps57 | setup -y ps-57"
+  echo "  Example: $(basename ${0}) show"
   echo
   echo "-> Available commands:       ${COMMANDS}"
   echo "-> Available setup products: ${ALIASES}"
   echo "-> Available repositories:   ${REPOSITORIES}"
   echo "-> Available components:     ${COMPONENTS}"
   echo "=> The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
+  echo "=> The \"show\" command will list all enabled Percona repos on the system."
   echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
 }
 #
@@ -233,6 +257,7 @@ function create_yum_repo {
   local _repo=${1}
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
+  [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   for _key in ${ARCH_LIST}; do
     echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
@@ -292,10 +317,17 @@ function enable_component {
 #
 function disable_component {
   local _repo=percona-${1}
-  if [[ ${2} = all ]] || [[ -z ${2} ]]; then
+  if [[ ${1} = all ]]; then
     for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*"); do
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
+  elif [[ -z ${2} ]]; then
+    for comp in testing experimanral; do
+      mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
+    done
+    if [[ ${_repo} != *prel ]]; then
+      mv -f ${LOCATION}/${_repo}-release.${EXT} ${LOCATION}/${_repo}-release.${EXT}.bak 2>/dev/null
+    fi
   else
     check_specified_component ${2}
     if [[ ${_repo} != *prel ]]; then
@@ -365,15 +397,7 @@ function enable_repository {
 function disable_repository {
   local _repos=${1}
   if [[ ${1} = all ]]; then
-    _repos=${REPOSITORIES}
-    for _repository in ${_repos}; do
-      if [[ ${_repository} != "prel" ]]; then
-        disable_component ${_repository} ${2}
-      else
-          disable_component ${_repository} experimental
-          disable_component ${_repository} testing
-      fi
-    done
+    disable_component all
   else
     check_specified_repo ${1}
     if [[ ${1} != "prel" ]]; then
@@ -470,6 +494,9 @@ function enable_alias {
   [[ ${NAME} = mysqlshell ]] && REPOS=${MYSQL_SHELL_REPOS:-}
   [[ ${NAME} = pmmclient ]] && REPOS=${PMM_CLIENT_REPOS:-}
   [[ ${NAME} = pmm2client ]] && REPOS=${PMM2_CLIENT_REPOS:-}
+  [[ ${NAME} = tools ]] && REPOS=${TOOLS_REPOS:-}
+  [[ ${NAME} = original ]] && REPOS=${ORIGINAL_REPOS:-}
+  [[ ${NAME} = percona ]] && REPOS=${ORIGINAL_REPOS:-}
   if [[ -z ${DESCRIPTION} ]]; then
     if [[ -z "${REPOS}" ]]; then
       name=$(echo ${NAME} | sed 's/[0-9].*//g')
@@ -527,6 +554,10 @@ case $1 in
   disable )
     shift
     disable_repository $@
+    ;;
+  show )
+    shift
+    show_enabled
     ;;
   * )
     show_help

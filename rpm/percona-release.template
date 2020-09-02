@@ -6,7 +6,7 @@ License:      GPL-3.0+
 Group:        System Environment/Base
 BuildArch:    noarch
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-%{_arch}
-Requires:     findutils
+Requires:     findutils curl grep
 Source0:      PERCONA-PACKAGING-KEY
 Source1:      percona-release.sh
 Source2:      RPM-GPG-KEY-Percona
@@ -48,7 +48,7 @@ if [ "x${OS}" != "x8" ]; then
     rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 fi
 #
-%{_bindir}/percona-release enable original
+%{_bindir}/percona-release enable original release
 %{_bindir}/percona-release enable prel release
 #
 cat << EOF
@@ -69,6 +69,7 @@ EOF
 #
 if [ $1 -eq 0 ]; then
   %{_bindir}/percona-release disable all
+  mv /etc/yum.repos.d/percona-prel-release.repo /etc/yum.repos.d/percona-prel-release.repo.bak
 fi
 #
 

@@ -22,8 +22,12 @@ set -e
 
 
 case "$1" in
-    remove|upgrade|deconfigure)
+    remove|deconfigure)
     /usr/bin/percona-release disable all
+    mv /etc/apt/sources.list.d/percona-prel-release.list /etc/apt/sources.list.d/percona-prel-release.list.bak
+    ;;
+
+    upgrade)
     ;;
 
     failed-upgrade)
