@@ -20,6 +20,10 @@ if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
 fi
 
+if [[ -f /etc/default/percona-release ]]; then
+    . /etc/default/percona-release
+fi
+
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"

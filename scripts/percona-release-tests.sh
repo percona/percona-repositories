@@ -64,6 +64,29 @@ function expect_repofile_deleted {
   [[ -f ${LOCATION}/${REPO}-${COMPONENT}.${EXT} ]] && echo "* ERROR! Repo file for ${REPO}-${COMPONENT} has not been disabled!" && exit 1
   [[ ! -f ${LOCATION}/${REPO}-${COMPONENT}.${EXT}.bak ]] && echo "* ERROR! Repo backup file for ${REPO}-${COMPONENT} has not been created!" && exit 1
 }
+
+function test_default_overrides {
+    local -i file_exists=0
+    local -r repo_url='https://repo.percona.com/test/'
+    local -r repo_name="percona-original-release"
+    local -r repo_file="${LOCATION}/${repo_name}.${EXT}"
+
+    if [[ -f /etc/default/percona-release ]]; then
+        file_exists=1
+        mv -v /etc/default/percona-release /etc/default/percona-release.backupfortest
+        printf 'URL="%s"\n' "${repo_url}" > /etc/default/percona-release
+    fi
+
+    ./${SCRIPT} enable-only original release
+    if [[ "${file_exists}" -eq 1 ]]; then
+        mv -v /etc/default/percona-release.backupfortest /etc/default/percona-release
+    fi
+
+    grep -Fq "${repo_url}" "${repo_file}" || {
+        echo "* ERROR! Repo file for  ${repo_name} does not contain the override setting"
+        exit 1
+    }
+}
 ####
 ###
 ##
@@ -100,6 +123,15 @@ done
 #
 ./${SCRIPT} disable all all
 rm -fv ${LOCATION}/*.bak
+## Test for overrides
+if [[ ! -d /etc/default ]]; then
+    echo "WARNING: /etc/default does not exist"
+else
+    test_default_overrides
+fi
+./${SCRIPT} disable all all
+rm -fv ${LOCATION}/*.bak
+## End
 #
 for _alias in ${ALIASES}; do
   REPOS=""
@@ -145,3 +177,4 @@ for _alias in ${ALIASES}; do
       expect_repofile_created ${_repository} release
     done
 done
+
