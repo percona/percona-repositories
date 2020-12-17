@@ -15,6 +15,10 @@ REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
+if [[ -f /etc/default/percona-release ]]; then
+    . /etc/default/percona-release
+fi
+
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
