@@ -16,7 +16,7 @@ COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
 if [[ -f /etc/default/percona-release ]]; then
-    . /etc/default/percona-release
+    source /etc/default/percona-release
 fi
 
 #
@@ -313,6 +313,11 @@ function enable_alias {
     disable_dnf_module ${NAME}
   fi
   for _repo in ${REPOS}; do
+    if [[ -z $(echo ${REPOSITORIES} | grep -o ${_repo}) ]]; then
+      echo "ERROR: Selected product uses \"${REPOS}\" repositories. But the \"${_repo}\" repository is disabled"
+      echo "Add \"${_repo}\" repository to REPOSITORIES=\"\" variable in /etc/default/percona-release file and re-run the script"
+      exit 1
+    fi
     enable_repository ${_repo}
   done
   run_update
