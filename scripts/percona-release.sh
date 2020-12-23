@@ -21,7 +21,7 @@ if [[ -f /etc/default/percona-release ]]; then
 fi
 
 if [[ -f /etc/default/percona-release ]]; then
-    . /etc/default/percona-release
+    source /etc/default/percona-release
 fi
 
 #
