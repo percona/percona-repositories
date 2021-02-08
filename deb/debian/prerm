@@ -26,7 +26,7 @@ case "$1" in
     /usr/bin/percona-release disable all
     if [ -f /etc/apt/sources.list.d/percona-prel-release.list ]; then
         mv /etc/apt/sources.list.d/percona-prel-release.list /etc/apt/sources.list.d/percona-prel-release.list.bak
-    then
+    fi
     ;;
 
     upgrade)
