@@ -15,6 +15,10 @@ REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 
+if [[ -f /etc/default/percona-release ]]; then
+    source /etc/default/percona-release
+fi
+
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
@@ -309,6 +313,11 @@ function enable_alias {
     disable_dnf_module ${NAME}
   fi
   for _repo in ${REPOS}; do
+    if [[ -z $(echo ${REPOSITORIES} | grep -o ${_repo}) ]]; then
+      echo "ERROR: Selected product uses \"${REPOS}\" repositories. But the \"${_repo}\" repository is disabled"
+      echo "Add \"${_repo}\" repository to REPOSITORIES=\"\" variable in /etc/default/percona-release file and re-run the script"
+      exit 1
+    fi
     enable_repository ${_repo}
   done
   run_update
