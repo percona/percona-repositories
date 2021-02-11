@@ -41,6 +41,7 @@ PXC80_DESC="Percona XtraDB Cluster 8.0"
 PSMDB36_DESC="Percona Server for MongoDB 3.6"
 PSMDB40_DESC="Percona Server for MongoDB 4.0"
 PSMDB42_DESC="Percona Server for MongoDB 4.2"
+PSMDB_DESC="Percona Server for MongoDB"
 TOOLS_DESC="Percona Tools"
 PPG11_DESC="Percona Distribution for PostgreSQL 11"
 PPG11_5_DESC="Percona Distribution for PostgreSQL 11.5"
@@ -389,6 +390,7 @@ function enable_repository {
     version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
+    [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
@@ -507,6 +509,7 @@ function enable_alias {
       version=$(echo ${NAME} | sed 's/[a-z]*//g')
       [[ ${name} = "ppg" ]] && REPOS="$name-$version"
       [[ ${name} = "pdmdb" ]] && REPOS="$name-$version"
+      [[ ${name} = "psmdb" ]] && REPOS="$name-$version"
       [[ ${name} = "pdps" ]] && REPOS="$name-$version"
       [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
     fi
