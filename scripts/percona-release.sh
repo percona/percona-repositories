@@ -175,7 +175,7 @@ function check_os_support {
     if [ -f /etc/os-release ]; then
       OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
     else
-      OS_VER=$(cat /etc/system-release | awk '{print $3}' | awk -F'.' '{print $1}')
+      OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
     reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
