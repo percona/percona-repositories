@@ -422,7 +422,7 @@ function disable_dnf_module {
   MODULE="mysql"
   PRODUCT="Percona-Server"
   if [[ ${REPO_NAME} == ppg* ]]; then
-    MODULE="postgresql"
+    MODULE="postgresql llvm-toolset"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
   if [[ ${REPO_NAME} == pdps* ]]; then
