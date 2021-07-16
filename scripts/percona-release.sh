@@ -14,6 +14,7 @@ COMMANDS="enable enable-only setup disable"
 REPOSITORIES="original ps-80 pxc-80 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-12 ppg-12.2 pdmdb-4.2 pdmdb-4.2.2 pdmysql-8.0 pdmysql-8.0.18"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
+SUPPORTED_ARCHS="i386 noarch x86_64 sources"
 
 if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
@@ -74,6 +75,15 @@ else
   exit 1
 fi
 #
+function _is_supported_arch {
+  local arch=$1
+
+  for _arch in ${SUPPORTED_ARCHS}; do
+        [[ ${_arch} = ${arch} ]] && return
+  done
+  false
+}
+
 function check_specified_alias {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
@@ -144,6 +154,11 @@ function create_yum_repo {
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   for _key in ${ARCH_LIST}; do
+    if ! _is_supported_arch "$_key"; then
+      echo "WARNING: Skipping ${_key} architecture, as it's not yet supported"
+      continue
+    fi
+
     echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
     if [[ ${_key} = sources ]]; then
