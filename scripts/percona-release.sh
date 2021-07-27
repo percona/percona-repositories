@@ -448,7 +448,7 @@ function disable_dnf_module {
     MODULE="mysql"
     PRODUCT="Percona Distribution for MySQL - PXC"
   fi
-  if [[ ${REPO_NAME} = "pxc*" ]];  then
+  if [[ ${REPO_NAME} = pxc* ]];  then
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
