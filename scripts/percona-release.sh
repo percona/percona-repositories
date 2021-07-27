@@ -14,6 +14,7 @@ COMMANDS="enable enable-only setup disable show"
 REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
+SUPPORTED_ARCHS="i386 noarch x86_64 sources"
 
 if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
@@ -142,6 +143,15 @@ function show_enabled {
   fi
 }
 #
+function is_supported_arch {
+  local arch=$1
+
+  for _arch in ${SUPPORTED_ARCHS}; do
+        [[ ${_arch} = ${arch} ]] && return
+  done
+  return 1
+}
+
 function check_specified_alias {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
@@ -264,6 +274,11 @@ function create_yum_repo {
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   for _key in ${ARCH_LIST}; do
+    if ! is_supported_arch "$_key"; then
+      echo "WARNING: Skipping ${_key} architecture, as it's not yet supported"
+      continue
+    fi
+
     echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
     if [[ ${_key} = sources ]]; then
