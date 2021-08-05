@@ -4,9 +4,11 @@ set -o xtrace
 #
 #          RH derivatives      and          Amazon Linux
 if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
+  AUTOUPDATE='NO'
   LOCATION=/etc/yum.repos.d
   EXT=repo
 elif [[ -f /etc/debian_version ]]; then
+  AUTOUPDATE='YES'
   LOCATION=/etc/apt/sources.list.d
   EXT=list
   CODENAME=$(lsb_release -sc)
@@ -42,7 +44,7 @@ function expect_repofile_created {
 function expect_single_repo_enabled {
   set +x
   COUNT=$(ls -1 ${LOCATION}/percona-*.${EXT} 2>/dev/null | wc -l)
-  [[ ${COUNT} -gt 1 ]] && echo "* ERROR! enable-only err: Additional repos are still enabled " && exit 1
+  [[ ${COUNT} -gt 1 ]] && echo "* ERROR! enable-only err: Additional repos are still enabled (${COUNT}): $(ls -1 ${LOCATION}/percona-*.${EXT}) " && exit 1
   set -x
 }
 #
@@ -83,9 +85,23 @@ function test_default_overrides {
     fi
 
     grep -Fq "${repo_url}" "${repo_file}" || {
-        echo "* ERROR! Repo file for  ${repo_name} does not contain the override setting"
+        echo "* ERROR! Repo file for ${repo_name} does not contain the override setting"
         exit 1
     }
+}
+
+function test_auto_update {
+    local status
+    local -a tests=( 'enable' 'enable-only' )
+    for t in "${tests[@]}"; do
+        status="$(./${SCRIPT} "${t}" original 2>&1)"
+        if [[ ${AUTOUPDATE} = 'YES' ]]; then
+            test "${status/Reading package lists... Done/}" != "${status}" || {
+                echo "* ERROR! Failed to perform auto-update whilst enabling repos"
+                exit 1
+            }
+        fi
+    done
 }
 ####
 ###
@@ -123,13 +139,6 @@ done
 #
 ./${SCRIPT} disable all all
 rm -fv ${LOCATION}/*.bak
-## Test for overrides
-if [[ ! -d /etc/default ]]; then
-    echo "WARNING: /etc/default does not exist"
-else
-    test_default_overrides
-fi
-./${SCRIPT} disable all all
 rm -fv ${LOCATION}/*.bak
 ## End
 #
@@ -157,3 +166,18 @@ for _alias in ${ALIASES}; do
     done
 done
 
+## Test for overrides
+./${SCRIPT} disable all all
+
+if [[ ! -d /etc/default ]]; then
+    echo "WARNING: /etc/default does not exist"
+else
+    test_default_overrides
+fi
+
+# Test auto-update
+./${SCRIPT} disable all all
+test_auto_update
+
+# End with cleanup
+./${SCRIPT} disable all all
