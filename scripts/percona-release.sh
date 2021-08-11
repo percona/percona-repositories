@@ -574,6 +574,7 @@ case $1 in
   setup )
     shift
     check_setup_command $@
+    check_specified_alias ${@##-*}
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_alias ${@##-*}
