@@ -323,6 +323,11 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
+    if [[ ${_repo} = percona-original ]]; then
+      [[ -f ${LOCATION}/percona-percona-${_component}.${EXT} ]] && _repo="percona-percona"
+    elif [[  ${_repo} = percona-percona ]]; then
+      [[ -f ${LOCATION}/percona-original-${_component}.${EXT} ]] && _repo="percona-original"
+    fi
     REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
