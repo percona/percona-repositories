@@ -347,7 +347,7 @@ function disable_component {
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
   elif [[ -z ${2} ]]; then
-    for comp in testing experimanral; do
+    for comp in testing experimental; do
       mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
     done
     if [[ ${_repo} != *prel ]]; then
