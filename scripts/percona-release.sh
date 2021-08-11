@@ -460,25 +460,26 @@ function disable_dnf_module {
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
+
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
+      echo "On RedHat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
         echo "Disabling dnf module..."
         dnf -y module disable ${MODULE}
-        echo "dnf ${MODULE} module was disabled"
+        echo "DNF ${MODULE} module was disabled"
       else
-        echo "Please note that some packages might be unavailable"
-        echo "If in future you decide to disable module please execute the next command:"
+        echo "Please note that some packages might be unavailable as packages that aren't included into DNF module are filtered"
+        echo "If in future you decide to disable module(s) please execute the next command:"
         echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
-      echo "Disabling dnf module..."
+      echo "On RedHat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "Disabling DNF module..."
       dnf -y module disable ${MODULE}
-      echo "dnf ${MODULE} module was disabled"
+      echo "DNF ${MODULE} module was disabled"
     fi
   fi
 }
