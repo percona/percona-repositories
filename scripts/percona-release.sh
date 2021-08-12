@@ -207,7 +207,7 @@ function check_repo_availability {
   [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
-  if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" ]; then
+  if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" ${REPO_NAME} != "pmm2-components" ]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
   REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
@@ -323,6 +323,11 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
+    if [[ ${_repo} = percona-original ]]; then
+      [[ -f ${LOCATION}/percona-percona-${_component}.${EXT} ]] && _repo="percona-percona"
+    elif [[  ${_repo} = percona-percona ]]; then
+      [[ -f ${LOCATION}/percona-original-${_component}.${EXT} ]] && _repo="percona-original"
+    fi
     REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
@@ -342,7 +347,7 @@ function disable_component {
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
   elif [[ -z ${2} ]]; then
-    for comp in testing experimanral; do
+    for comp in testing experimental; do
       mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
     done
     if [[ ${_repo} != *prel ]]; then
@@ -403,6 +408,9 @@ function enable_repository {
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
     version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    if [[ $version != *.* ]] ; then
+      version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
+    fi
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
@@ -452,25 +460,26 @@ function disable_dnf_module {
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
+
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
+      echo "On RedHat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
         echo "Disabling dnf module..."
         dnf -y module disable ${MODULE}
-        echo "dnf ${MODULE} module was disabled"
+        echo "DNF ${MODULE} module was disabled"
       else
-        echo "Please note that some packages might be unavailable"
-        echo "If in future you decide to disable module please execute the next command:"
+        echo "Please note that some packages might be unavailable as packages that aren't included into DNF module are filtered"
+        echo "If in future you decide to disable module(s) please execute the next command:"
         echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
-      echo "Disabling dnf module..."
+      echo "On RedHat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "Disabling DNF module..."
       dnf -y module disable ${MODULE}
-      echo "dnf ${MODULE} module was disabled"
+      echo "DNF ${MODULE} module was disabled"
     fi
   fi
 }
@@ -574,6 +583,7 @@ case $1 in
   setup )
     shift
     check_setup_command $@
+    check_specified_alias ${@##-*}
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_alias ${@##-*}
