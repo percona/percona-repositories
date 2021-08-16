@@ -120,7 +120,7 @@ elif [[ -f /etc/debian_version ]]; then
   PKGTOOL="apt-get"
   CODENAME=$(lsb_release -sc)
 else
-  echo "==>> ERROR: Unsupported system"
+  echo "==>> ERROR: Unsupported operating system"
   exit 1
 fi
 #
@@ -138,7 +138,7 @@ function show_enabled {
   elif [[ -f /etc/debian_version ]]; then
     grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep percona | awk '{print $2$4}' | sed 's;http://repo.percona.com/;;g' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
-    echo "==>> ERROR: Unsupported system"
+    echo "==>> ERROR: Unsupported operating system"
     exit 1
   fi
 }
@@ -168,7 +168,7 @@ function check_specified_alias {
 
 function check_specified_repo {
   local found=NO
-  [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
+  [[ -z ${1} ]] && echo "ERROR: No repository specified!" && show_help && exit 2
   for _repo in ${REPOSITORIES}; do
     [[ ${_repo} = ${1} ]] && found=YES
   done
@@ -193,7 +193,7 @@ function check_os_support {
     reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
   fi
   if [[ ${reply} != 200 ]]; then
-      echo "Specified repository is not supported for current operation system!"
+      echo "Specified repository is not supported for current operating system!"
       exit 2
   fi
 }
@@ -275,7 +275,7 @@ function create_yum_repo {
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   for _key in ${ARCH_LIST}; do
     if ! is_supported_arch "$_key"; then
-      echo "WARNING: Skipping ${_key} architecture, as it's not yet supported"
+      echo "WARNING: Skipping ${_key} architecture, as it's not supported"
       continue
     fi
 
@@ -463,7 +463,7 @@ function disable_dnf_module {
 
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On RedHat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
@@ -472,11 +472,11 @@ function disable_dnf_module {
         echo "DNF ${MODULE} module was disabled"
       else
         echo "Please note that some packages might be unavailable as packages that aren't included into DNF module are filtered"
-        echo "If in future you decide to disable module(s) please execute the next command:"
+        echo "If in the future you decide to disable module(s) please execute the next command:"
         echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On RedHat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       echo "Disabling DNF module..."
       dnf -y module disable ${MODULE}
       echo "DNF ${MODULE} module was disabled"
