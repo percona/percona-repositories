@@ -14,6 +14,7 @@ COMMANDS="enable enable-only setup disable show"
 REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
+SUPPORTED_ARCHS="i386 noarch x86_64 sources"
 
 if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
@@ -119,14 +120,14 @@ elif [[ -f /etc/debian_version ]]; then
   PKGTOOL="apt-get"
   CODENAME=$(lsb_release -sc)
 else
-  echo "==>> ERROR: Unsupported system"
+  echo "==>> ERROR: Unsupported operating system"
   exit 1
 fi
 #
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -137,11 +138,20 @@ function show_enabled {
   elif [[ -f /etc/debian_version ]]; then
     grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep percona | awk '{print $2$4}' | sed 's;http://repo.percona.com/;;g' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
-    echo "==>> ERROR: Unsupported system"
+    echo "==>> ERROR: Unsupported operating system"
     exit 1
   fi
 }
 #
+function is_supported_arch {
+  local arch=$1
+
+  for _arch in ${SUPPORTED_ARCHS}; do
+        [[ ${_arch} = ${arch} ]] && return
+  done
+  return 1
+}
+
 function check_specified_alias {
   local found=NO
   [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
@@ -158,7 +168,7 @@ function check_specified_alias {
 
 function check_specified_repo {
   local found=NO
-  [[ -z ${1} ]] && echo "ERROR: No repo specified!" && show_help && exit 2
+  [[ -z ${1} ]] && echo "ERROR: No repository specified!" && show_help && exit 2
   for _repo in ${REPOSITORIES}; do
     [[ ${_repo} = ${1} ]] && found=YES
   done
@@ -175,7 +185,7 @@ function check_os_support {
     if [ -f /etc/os-release ]; then
       OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
     else
-      OS_VER=$(cat /etc/system-release | awk '{print $3}' | awk -F'.' '{print $1}')
+      OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
     reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
@@ -183,7 +193,7 @@ function check_os_support {
     reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
   fi
   if [[ ${reply} != 200 ]]; then
-      echo "Specified repository is not supported for current operation system!"
+      echo "Specified repository is not supported for current operating system!"
       exit 2
   fi
 }
@@ -197,7 +207,7 @@ function check_repo_availability {
   [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
-  if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" ]; then
+  if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" -a ${REPO_NAME} != "pmm2-components" ]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
   REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
@@ -264,6 +274,11 @@ function create_yum_repo {
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   for _key in ${ARCH_LIST}; do
+    if ! is_supported_arch "$_key"; then
+      echo "WARNING: Skipping ${_key} architecture, as it's not supported"
+      continue
+    fi
+
     echo "[${_repo}-${2}-${_key}]" >> ${REPOFILE}
     echo "name = ${DESCRIPTION} ${2}/${_key} YUM repository" >> ${REPOFILE}
     if [[ ${_key} = sources ]]; then
@@ -308,6 +323,11 @@ function enable_component {
   fi
 #
   for _component in ${dCOMP}; do
+    if [[ ${_repo} = percona-original ]]; then
+      [[ -f ${LOCATION}/percona-percona-${_component}.${EXT} ]] && _repo="percona-percona"
+    elif [[  ${_repo} = percona-percona ]]; then
+      [[ -f ${LOCATION}/percona-original-${_component}.${EXT} ]] && _repo="percona-original"
+    fi
     REPOFILE=${LOCATION}/${_repo}-${_component}.${EXT}
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
@@ -327,7 +347,7 @@ function disable_component {
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
   elif [[ -z ${2} ]]; then
-    for comp in testing experimanral; do
+    for comp in testing experimental; do
       mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
     done
     if [[ ${_repo} != *prel ]]; then
@@ -388,6 +408,9 @@ function enable_repository {
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
     version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    if [[ $version != *.* ]] ; then
+      version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
+    fi
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
@@ -422,7 +445,7 @@ function disable_dnf_module {
   MODULE="mysql"
   PRODUCT="Percona-Server"
   if [[ ${REPO_NAME} == ppg* ]]; then
-    MODULE="postgresql"
+    MODULE="postgresql llvm-toolset"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
   if [[ ${REPO_NAME} == pdps* ]]; then
@@ -433,29 +456,30 @@ function disable_dnf_module {
     MODULE="mysql"
     PRODUCT="Percona Distribution for MySQL - PXC"
   fi
-  if [[ ${REPO_NAME} = "pxc*" ]];  then
+  if [[ ${REPO_NAME} = pxc* ]];  then
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
+
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
+      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
         echo "Disabling dnf module..."
         dnf -y module disable ${MODULE}
-        echo "dnf ${MODULE} module was disabled"
+        echo "DNF ${MODULE} module was disabled"
       else
-        echo "Please note that some packages might be unavailable"
-        echo "If in future you decide to disable module please execute the next command:"
+        echo "Please note that some packages might be unavailable as packages that aren't included into DNF module are filtered"
+        echo "If in the future you decide to disable module(s) please execute the next command:"
         echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On RedHat 8 systems it is needed to disable dnf ${MODULE} module to install ${PRODUCT}"
-      echo "Disabling dnf module..."
+      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "Disabling DNF module..."
       dnf -y module disable ${MODULE}
-      echo "dnf ${MODULE} module was disabled"
+      echo "DNF ${MODULE} module was disabled"
     fi
   fi
 }
@@ -559,6 +583,7 @@ case $1 in
   setup )
     shift
     check_setup_command $@
+    check_specified_alias ${@##-*}
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_alias ${@##-*}
