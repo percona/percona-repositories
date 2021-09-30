@@ -24,8 +24,10 @@ fi
 CURL_PROXY=
 if [[ -n "${HTTPS_PROXY}" ]] || [[ -n "${HTTP_PROXY}" ]]; then
     if [[ "${URL}" =~ ^https: ]]; then
+        APT_PROXY_SCHEME=https
         CURL_PROXY="${HTTPS_PROXY}"
     else
+        APT_PROXY_SCHEME=http
         CURL_PROXY="${HTTP_PROXY}"
     fi
 fi
@@ -304,6 +306,7 @@ function create_yum_repo {
     echo "baseurl = ${URL}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
     echo "enabled = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
+    [[ -n "${CURL_PROXY}" ]] && echo "proxy = ${CURL_PROXY}" >> ${REPOFILE}
     echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
     echo >> ${REPOFILE}
   done
@@ -311,8 +314,17 @@ function create_yum_repo {
 #
 function create_apt_repo {
   local _repo=${1}
+  local _proxyline=
+
   [[ ${1} = "original" ]] && _repo=percona
   REPOURL="${URL}/${_repo}/apt ${CODENAME}"
+  if [[ -n "${CURL_PROXY}" ]]; then
+      _proxyline="Acquire::${APT_PROXY_SCHEME}::Proxy::${URL/${APT_PROXY_SCHEME}:\/\//} \"${CURL_PROXY}\""
+
+      if [[ ! -f /etc/apt/apt.conf.d/99-percona-release ]] || ! grep -Fq "${_proxyline}" /etc/; then
+          echo "${_proxyline}" >> /etc/apt/apt.conf.d/99-percona-release
+      fi
+  fi
   if [[ ${2} = release ]]; then
     _component=main
     echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
