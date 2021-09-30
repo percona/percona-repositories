@@ -20,6 +20,17 @@ if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
 fi
 
+# Special proxy handling for cURL
+CURL_PROXY=
+if [[ -n "${HTTPS_PROXY}" ]] || [[ -n "${HTTP_PROXY}" ]]; then
+    if [[ "${URL}" =~ ^https: ]]; then
+        CURL_PROXY="${HTTPS_PROXY}"
+    else
+        CURL_PROXY="${HTTP_PROXY}"
+    fi
+fi
+CURL_EXEC=( curl "--proxy" "'${CURL_PROXY}'" )
+
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
@@ -127,7 +138,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -187,10 +198,10 @@ function check_os_support {
     else
       OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
   fi
   if [[ ${reply} != 200 ]]; then
       echo "Specified repository is not supported for current operating system!"
@@ -211,7 +222,7 @@ function check_repo_availability {
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
   REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
-  reply=$(curl -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
+  reply=$("${CURL_EXEC[@]}" -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
     if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
       REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
