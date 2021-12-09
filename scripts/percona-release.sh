@@ -20,6 +20,23 @@ if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
 fi
 
+# Special proxy handling for cURL
+CURL_PROXY=
+CURL_EXEC=( /usr/bin/curl )
+if [[ -n "${https_proxy}" ]] || [[ -n "${http_proxy}" ]] ||
+   [[ -n "${HTTPS_PROXY}" ]] || [[ -n "${HTTP_PROXY}" ]]; then
+    if [[ "${URL}" =~ ^https: ]]; then
+        APT_PROXY_SCHEME=https
+        CURL_PROXY="${https_proxy:-${HTTPS_PROXY}}"
+    else
+        APT_PROXY_SCHEME=http
+        CURL_PROXY="${http_proxy:-${HTTP_PROXY}}"
+    fi
+    if [[ -n "${CURL_PROXY}" ]]; then
+        CURL_EXEC=( /usr/bin/curl "--proxy" "${CURL_PROXY}" )
+    fi
+fi
+
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
@@ -127,7 +144,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -187,10 +204,10 @@ function check_os_support {
     else
       OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
   fi
   if [[ ${reply} != 200 ]]; then
       echo "Specified repository is not supported for current operating system!"
@@ -211,7 +228,7 @@ function check_repo_availability {
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
   REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
-  reply=$(curl -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
+  reply=$("${CURL_EXEC[@]}" -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
     if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
       REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
@@ -293,6 +310,7 @@ function create_yum_repo {
     echo "baseurl = ${URL}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
     echo "enabled = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
+    [[ -n "${CURL_PROXY}" ]] && echo "proxy = ${CURL_PROXY}" >> ${REPOFILE}
     echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
     echo >> ${REPOFILE}
   done
@@ -300,8 +318,17 @@ function create_yum_repo {
 #
 function create_apt_repo {
   local _repo=${1}
+  local _proxyline=
+
   [[ ${1} = "original" ]] && _repo=percona
   REPOURL="${URL}/${_repo}/apt ${CODENAME}"
+  if [[ -n "${CURL_PROXY}" ]]; then
+      _proxyline="Acquire::${APT_PROXY_SCHEME}::Proxy::${URL/${APT_PROXY_SCHEME}:\/\//} \"${CURL_PROXY}\";"
+
+      if [[ ! -f /etc/apt/apt.conf.d/99-percona-release ]] || ( ! grep -Rq "${_proxyline}" /etc/ ); then
+          echo "${_proxyline}" >> /etc/apt/apt.conf.d/99-percona-release
+      fi
+  fi
   if [[ ${2} = release ]]; then
     _component=main
     echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
