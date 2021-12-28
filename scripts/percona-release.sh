@@ -20,10 +20,6 @@ if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
 fi
 
-if [[ -f /etc/default/percona-release ]]; then
-    source /etc/default/percona-release
-fi
-
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
@@ -35,9 +31,9 @@ PBM_DESC="Percona Backup MongoDB"
 MYSQL_SHELL_DESC="Percona MySQL Shell"
 PMM_CLIENT_DESC="PMM Client"
 PMM2_CLIENT_DESC="PMM2 Client"
-PS56_DESC="Percona Server 5.6"
-PS57_DESC="Percona Server 5.7"
-PS80_DESC="Percona Server 8.0"
+PS56_DESC="Percona Server for MySQL 5.6"
+PS57_DESC="Percona Server for MySQL 5.7"
+PS80_DESC="Percona Server for MySQL 8.0"
 PXB24_DESC="Percona XtraBackup 2.4"
 PXB80_DESC="Percona XtraBackup 8.0"
 PXC56_DESC="Percona XtraDB Cluster 5.6"
