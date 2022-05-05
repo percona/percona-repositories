@@ -408,7 +408,7 @@ function enable_repository {
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
     version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
-    if [[ $version != *.* ]] ; then
+    if [[ $version != *.* && $name != "ppg" ]] ; then
       version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
     fi
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
