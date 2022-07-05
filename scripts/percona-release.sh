@@ -127,7 +127,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -573,12 +573,14 @@ case $1 in
   enable )
     shift
     enable_repository $@
+    run_update
     ;;
   enable-only )
     shift
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_repository $@
+    run_update
     ;;
   setup )
     shift
@@ -591,6 +593,7 @@ case $1 in
   disable )
     shift
     disable_repository $@
+    run_update
     ;;
   show )
     shift
