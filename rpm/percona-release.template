@@ -44,7 +44,7 @@ Source2:      RPM-GPG-KEY-Percona
 %post
 #
 OS=$(cat /etc/system-release | tr -dc '0-9.'|awk -F'.' {'print $1'})
-if [ "x${OS}" != "x8" ]; then
+if [ "x${OS}" = "x7" ]; then
     rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-Percona
 fi
 #
