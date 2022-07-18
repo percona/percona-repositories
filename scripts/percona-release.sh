@@ -445,7 +445,7 @@ function disable_dnf_module {
   MODULE="mysql"
   PRODUCT="Percona-Server"
   if [[ ${REPO_NAME} == ppg* ]]; then
-    MODULE="postgresql llvm-toolset"
+    MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
   if [[ ${REPO_NAME} == pdps* ]]; then
@@ -463,7 +463,7 @@ function disable_dnf_module {
 
   if [[ -f /usr/bin/dnf ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE} to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
@@ -476,7 +476,7 @@ function disable_dnf_module {
         echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE} to install ${PRODUCT}"
       echo "Disabling DNF module..."
       dnf -y module disable ${MODULE}
       echo "DNF ${MODULE} module was disabled"
