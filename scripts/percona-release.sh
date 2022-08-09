@@ -258,7 +258,7 @@ function show_help {
   echo "-> Available components:     ${COMPONENTS}"
   echo "=> The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
   echo "=> The \"show\" command will list all enabled Percona repos on the system."
-  echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
+  echo "=> Please see percona-release page for help: https://docs.percona.com/percona-software-repositories/percona-release.html"
 }
 #
 function run_update {
