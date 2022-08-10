@@ -9,9 +9,64 @@ if [[ $(id -u) -gt 0 ]]; then
   exit 1
 fi
 #
+
+PRODUCTS_ABBREVIATIONS=("pdmdb" "pdps" "pdpxc" "pmm" "ppg11" "ppg12" "ppg13" "ppg14" "psmdb" "px")
+
+function sort_array {
+  ARRAY=$1
+  local flagforabbr="pdmdb"
+  PRODUCTS=()
+  OTHER_CURRENT_ALIASES=()
+  for element in ${ARRAY[@]}
+    do
+      counter=1
+      for abbr in ${PRODUCTS_ABBREVIATIONS[@]}
+        do
+	  if ! [[ "${element//-/}" =~ ^$abbr.*$ ]]; then
+            if [[ $counter == ${#PRODUCTS_ABBREVIATIONS[@]} ]]; then
+              OTHER_CURRENT_ALIASES+="$element "
+            else
+              counter=$((counter+1))
+            fi
+          else
+            if ! [[ $flagforabbr == $abbr ]]; then
+              flagforabbr=$abbr
+              echo ${PRODUCTS}
+              PRODUCTS=()
+              PRODUCTS+="$element "
+              break
+	    else
+              PRODUCTS+="$element "
+	    fi
+          fi
+        done
+    done
+  echo -e ${PRODUCTS}
+  echo -e ${OTHER_CURRENT_ALIASES}
+}
+
+function get_repos_from_site {
+  CURRENT_REPOS=$(curl -s https://repo.percona.com | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}') 
+
+  for repo in ${CURRENT_REPOS[@]}
+    do
+      if [ ${repo} != "mysql-shell" -a ${repo} != "pmm-client" -a ${repo} != "pmm2-client" -a ${repo} != "pmm2-components" ]; then
+          CURRENT_ALIASES+="${repo//-/} "
+      else
+          CURRENT_ALIASES+="${repo} "
+      fi
+    done
+
+  CURRENT_REPOS="${CURRENT_REPOS//$'\n'/ }"
+}
+
+get_repos_from_site
+
 ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb24 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel proxysql sysbench pt pmm-client pmm2-client mysql-shell pbm pdmdb4.4 pdmdb4.4.0 psmdb44"
-COMMANDS="enable enable-only setup disable show"
+ALIASES=${CURRENT_ALIASES}
+COMMANDS="enable enable-only setup disable show help"
 REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
+REPOSITORIES=${CURRENT_REPOS}
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 SUPPORTED_ARCHS="i386 noarch x86_64 sources"
@@ -248,17 +303,23 @@ function show_help {
   echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT] | show"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
-  echo "  Example: $(basename ${0}) setup ps57 | setup-57"
+  echo "  Example: $(basename ${0}) setup ps57 | ps-57"
   echo "  Example: $(basename ${0}) setup -y ps57 | setup -y ps-57"
   echo "  Example: $(basename ${0}) show"
   echo
-  echo "-> Available commands:       ${COMMANDS}"
-  echo "-> Available setup products: ${ALIASES}"
-  echo "-> Available repositories:   ${REPOSITORIES}"
-  echo "-> Available components:     ${COMPONENTS}"
-  echo "=> The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
-  echo "=> The \"show\" command will list all enabled Percona repos on the system."
-  echo "=> Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
+  echo "Available commands:          ${COMMANDS}"
+  echo
+  echo "Available setup products:    "
+  sort_array "${ALIASES}"
+  echo
+  echo "Available repositories:      "
+  sort_array "${REPOSITORIES}"
+  echo
+  echo "Available components:        ${COMPONENTS}"
+  echo
+  echo "The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
+  echo "The \"show\" command will list all enabled Percona repos on the system."
+  echo "Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
 }
 #
 function run_update {
@@ -562,14 +623,14 @@ function check_setup_command {
   fi
 }
 #
-if [[ ${COMMANDS} != *${1}* ]]; then
+if [[ ${COMMANDS} != *$(echo ${1} | sed 's/^--//g')* ]]; then
   echo "ERROR: Unknown action specified: ${1}"
   show_help
   exit 2
 fi
 #
 check_repo_availability $@
-case $1 in
+case $(echo ${1} | sed 's/^--//g') in
   enable )
     shift
     enable_repository $@
