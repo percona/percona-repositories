@@ -16,57 +16,53 @@ function sort_array {
   ARRAY=$1
   local flagforabbr="pdmdb"
   PRODUCTS=()
-  OTHER_CURRENT_ALIASES=()
+  OTHER_PRODUCTS=()
   for element in ${ARRAY[@]}
     do
       counter=1
       for abbr in ${PRODUCTS_ABBREVIATIONS[@]}
         do
-	  if ! [[ "${element//-/}" =~ ^$abbr.*$ ]]; then
-            if [[ $counter == ${#PRODUCTS_ABBREVIATIONS[@]} ]]; then
-              OTHER_CURRENT_ALIASES+="$element "
+	  if [[ "${element//-/}" =~ ^$abbr.*$ ]]; then
+            if [[ $flagforabbr == $abbr ]]; then
+              PRODUCTS+="$element "
             else
-              counter=$((counter+1))
-            fi
-          else
-            if ! [[ $flagforabbr == $abbr ]]; then
               flagforabbr=$abbr
               echo ${PRODUCTS}
               PRODUCTS=()
               PRODUCTS+="$element "
               break
-	    else
-              PRODUCTS+="$element "
 	    fi
+          else
+            if [[ $counter == ${#PRODUCTS_ABBREVIATIONS[@]} ]]; then
+              OTHER_PRODUCTS+="$element "
+            else
+              counter=$((counter+1))
+            fi
           fi
         done
     done
   echo -e ${PRODUCTS}
-  echo -e ${OTHER_CURRENT_ALIASES}
+  echo -e ${OTHER_PRODUCTS}
 }
 
 function get_repos_from_site {
-  CURRENT_REPOS=$(curl -s https://repo.percona.com | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}') 
-
-  for repo in ${CURRENT_REPOS[@]}
+  REPOSITORIES=$(curl -s ${URL} | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}')
+  if [ -z "$REPOSITORIES" ]; then
+    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
+  fi
+  REPOSITORIES="${REPOSITORIES/percona/original}"
+  for repo in ${REPOSITORIES[@]}
     do
       if [ ${repo} != "mysql-shell" -a ${repo} != "pmm-client" -a ${repo} != "pmm2-client" -a ${repo} != "pmm2-components" ]; then
-          CURRENT_ALIASES+="${repo//-/} "
+        ALIASES+="${repo//-/} "
       else
-          CURRENT_ALIASES+="${repo} "
+        ALIASES+="${repo} "
       fi
     done
-
-  CURRENT_REPOS="${CURRENT_REPOS//$'\n'/ }"
+  REPOSITORIES="${REPOSITORIES//$'\n'/ }"
 }
 
-get_repos_from_site
-
-ALIASES="ps56 ps57 ps80 psmdb34 psmdb36 psmdb40 psmdb42 pxb24 pxb80 pxc56 pxc57 pxc80 ppg11 ppg11.5 ppg11.6 ppg11.7 ppg11.8 ppg12 ppg12.2 ppg12.3 pdmdb4.2 pdmdb4.2.6 pdmdb4.2.7 pdmdb4.2.8 pdps8.0.19 pdps8.0.20 pdpxc8.0.19 pdps8.0 pdpxc8.0 prel proxysql sysbench pt pmm-client pmm2-client mysql-shell pbm pdmdb4.4 pdmdb4.4.0 psmdb44"
-ALIASES=${CURRENT_ALIASES}
 COMMANDS="enable enable-only setup disable show help"
-REPOSITORIES="original ps-56 ps-57 ps-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 pxb-24 pxb-80 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
-REPOSITORIES=${CURRENT_REPOS}
 COMPONENTS="release testing experimental"
 URL="http://repo.percona.com"
 SUPPORTED_ARCHS="i386 noarch x86_64 sources"
@@ -622,6 +618,8 @@ function check_setup_command {
     exit 2
   fi
 }
+#
+get_repos_from_site
 #
 if [[ ${COMMANDS} != *$(echo ${1} | sed 's/^--//g')* ]]; then
   echo "ERROR: Unknown action specified: ${1}"
