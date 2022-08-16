@@ -61,7 +61,7 @@ For example, to enable the Percona Server 8.0 repository use:
 Note: To avoid conflicts with older product versions, the percona-release setup command may disable our original repository for some products.
 
 For more information, please visit:
-  https://www.percona.com/doc/percona-repo-config/percona-release.html
+  https://docs.percona.com/percona-software-repositories/percona-release.html
 
 EOF
 
