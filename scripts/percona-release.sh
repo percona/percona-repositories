@@ -497,6 +497,21 @@ function disable_repository {
   MODIFIED=YES
 }
 #
+function check_enabled_modules {
+  MOD="${1} ${2}"
+  if [[ -f /usr/bin/dnf ]]; then
+    for element in ${MOD[@]}
+    do
+      check_command=$(dnf -q module list --enabled | awk '{print $1}' | grep ${element})
+      if [[ -n ${check_command} ]]; then
+        ENABLED_MODULES=YES
+        return
+      fi
+    done
+  fi
+  ENABLED_MODULES=NO
+}
+#
 function disable_dnf_module {
   REPO_NAME=${1}
   MODULE="mysql"
@@ -517,10 +532,10 @@ function disable_dnf_module {
     MODULE="mysql"
     PRODUCT="Percona XtraDB Cluster"
   fi
-
-  if [[ -f /usr/bin/dnf ]]; then
+  check_enabled_modules ${MODULE}
+  if [[ -f /usr/bin/dnf && ${ENABLED_MODULES} = YES ]]; then
     if [[ ${INTERACTIVE} = YES ]]; then
-      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "On Red Hat 8 and 9 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       read -r -p "Do you want to disable it? [y/N] " response
       if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
       then
@@ -533,7 +548,7 @@ function disable_dnf_module {
         echo "  dnf module disable ${MODULE}"
       fi
     else
-      echo "On Red Hat 8 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
+      echo "On Red Hat 8 and 9 systems it is needed to disable the following DNF module(s): ${MODULE}  to install ${PRODUCT}"
       echo "Disabling DNF module..."
       dnf -y module disable ${MODULE}
       echo "DNF ${MODULE} module was disabled"
