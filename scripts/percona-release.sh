@@ -232,13 +232,14 @@ function check_specified_repo {
 #
 function check_os_support {
    REPO_NAME=$1
+   COMPONENT=$2
    if [[ ${PKGTOOL} = yum ]]; then
     if [ -f /etc/os-release ]; then
       OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
     else
       OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
     reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
@@ -252,9 +253,12 @@ function check_os_support {
 function check_repo_availability {
   if [[ "$2" == "-y" ]]; then
     REPO_NAME=${3}
+    COMPONENT=${4}
   else
     REPO_NAME=${2}
+    COMPONENT=${3}
   fi
+  [[ -z ${COMPONENT} ]] && COMPONENT="release"
   [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
@@ -268,7 +272,7 @@ function check_repo_availability {
       REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
       ALIASES="${REPOSITORIES} ${REPO_ALIAS}"
       REPOSITORIES="${REPOSITORIES} ${REPO_NAME}"
-      check_os_support ${REPO_NAME}
+      check_os_support ${REPO_NAME} ${COMPONENT}
     fi
   else
     echo "Specified repository does not exist: ${REPO_LINK}"
