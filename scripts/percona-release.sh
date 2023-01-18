@@ -178,7 +178,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do 
+    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -187,7 +187,7 @@ function show_enabled {
       fi
     done
   elif [[ -f /etc/debian_version ]]; then
-    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep repo.percona.com | awk '{print $2$4}' | sed 's;http://repo.percona.com/;;g' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
+    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $2$4}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
     echo "==>> ERROR: Unsupported operating system"
     exit 1
@@ -239,10 +239,10 @@ function check_os_support {
     else
       OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$(curl -Is ${URL}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    reply=$(curl -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$(curl -Is ${URL}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
   fi
   if [[ ${reply} != 200 ]]; then
       echo "Specified repository is not supported for current operating system!"
@@ -265,7 +265,7 @@ function check_repo_availability {
   if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" -a ${REPO_NAME} != "pmm2-components" ]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
-  REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
+  REPO_LINK="${URL}/${REPO_NAME}/"
   reply=$(curl -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
     if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
