@@ -46,6 +46,9 @@ function sort_array {
 }
 
 function get_repos_from_site {
+  if [ "${REPOSITORIES}" != "" ]; then
+      return
+  fi
   REPOSITORIES=$(curl -s ${URL} | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}')
   if [ -z "$REPOSITORIES" ]; then
     REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
@@ -64,6 +67,7 @@ function get_repos_from_site {
 
 COMMANDS="enable enable-only setup disable show help"
 COMPONENTS="release testing experimental"
+REPOSITORIES=""
 URL="http://repo.percona.com"
 SUPPORTED_ARCHS="i386 noarch x86_64 sources"
 
