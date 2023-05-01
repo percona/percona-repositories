@@ -71,6 +71,23 @@ if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
 fi
 
+# Special proxy handling for cURL
+CURL_PROXY=
+CURL_EXEC=( /usr/bin/curl )
+if [[ -n "${https_proxy}" ]] || [[ -n "${http_proxy}" ]] ||
+   [[ -n "${HTTPS_PROXY}" ]] || [[ -n "${HTTP_PROXY}" ]]; then
+    if [[ "${URL}" =~ ^https: ]]; then
+        APT_PROXY_SCHEME=https
+        CURL_PROXY="${https_proxy:-${HTTPS_PROXY}}"
+    else
+        APT_PROXY_SCHEME=http
+        CURL_PROXY="${http_proxy:-${HTTP_PROXY}}"
+    fi
+    if [[ -n "${CURL_PROXY}" ]]; then
+        CURL_EXEC=( /usr/bin/curl "--proxy" "${CURL_PROXY}" )
+    fi
+fi
+
 #
 DESCRIPTION=""
 DEFAULT_REPO_DESC="Percona Original"
@@ -239,10 +256,10 @@ function check_os_support {
     else
       OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
-    reply=$(curl -Is ${URL}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    reply=$(curl -Is ${URL}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
   fi
   if [[ ${reply} != 200 ]]; then
       echo "Specified repository is not supported for current operating system!"
@@ -265,8 +282,8 @@ function check_repo_availability {
   if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" -a ${REPO_NAME} != "pmm2-components" ]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
-  REPO_LINK="${URL}/${REPO_NAME}/"
-  reply=$(curl -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
+  REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
+  reply=$("${CURL_EXEC[@]}" -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
     if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
       REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
@@ -354,6 +371,7 @@ function create_yum_repo {
     echo "baseurl = ${URL}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
     echo "enabled = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
+    [[ -n "${CURL_PROXY}" ]] && echo "proxy = ${CURL_PROXY}" >> ${REPOFILE}
     echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
     echo >> ${REPOFILE}
   done
@@ -361,8 +379,17 @@ function create_yum_repo {
 #
 function create_apt_repo {
   local _repo=${1}
+  local _proxyline=
+
   [[ ${1} = "original" ]] && _repo=percona
   REPOURL="${URL}/${_repo}/apt ${CODENAME}"
+  if [[ -n "${CURL_PROXY}" ]]; then
+      _proxyline="Acquire::${APT_PROXY_SCHEME}::Proxy::${URL/${APT_PROXY_SCHEME}:\/\//} \"${CURL_PROXY}\";"
+
+      if [[ ! -f /etc/apt/apt.conf.d/99-percona-release ]] || ( ! grep -Rq "${_proxyline}" /etc/ ); then
+          echo "${_proxyline}" >> /etc/apt/apt.conf.d/99-percona-release
+      fi
+  fi
   if [[ ${2} = release ]]; then
     _component=main
     echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
@@ -521,7 +548,7 @@ function disable_dnf_module {
   MODULE="mysql"
   PRODUCT="Percona-Server"
   if [[ ${REPO_NAME} == ppg* ]]; then
-    MODULE="postgresql llvm-toolset"
+    MODULE="postgresql"
     PRODUCT="Percona PostgreSQL Distribution"
   fi
   if [[ ${REPO_NAME} == pdps* ]]; then
@@ -651,12 +678,14 @@ case $(echo ${1} | sed 's/^--//g') in
   enable )
     shift
     enable_repository $@
+    run_update
     ;;
   enable-only )
     shift
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_repository $@
+    run_update
     ;;
   setup )
     shift
@@ -669,6 +698,7 @@ case $(echo ${1} | sed 's/^--//g') in
   disable )
     shift
     disable_repository $@
+    run_update
     ;;
   show )
     shift
