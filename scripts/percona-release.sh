@@ -678,12 +678,14 @@ case $(echo ${1} | sed 's/^--//g') in
   enable )
     shift
     enable_repository $@
+    run_update
     ;;
   enable-only )
     shift
     echo "* Disabling all Percona Repositories"
     disable_repository all all
     enable_repository $@
+    run_update
     ;;
   setup )
     shift
@@ -696,6 +698,7 @@ case $(echo ${1} | sed 's/^--//g') in
   disable )
     shift
     disable_repository $@
+    run_update
     ;;
   show )
     shift
