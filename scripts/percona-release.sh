@@ -532,6 +532,28 @@ function disable_repository {
   MODIFIED=YES
 }
 #
+function update_rpm {
+  RHEL=$(rpm --eval %rhel)
+  if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
+    RHEL=$(rpm --eval %rhel)
+    if [[ ${INTERACTIVE} = YES ]]; then
+      echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
+      read -r -p "Do you want to update it? [y/N] " response
+      if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+      then
+        dnf -y update rpm
+      else
+        echo "Please note that using an old version of rpm package can cause dependency issues or conflicts with existing packages."
+        echo "If in the future you decide to update rpm package please execute the next command:"
+        echo "  dnf update rpm"
+      fi
+    else
+      echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
+      dnf -y update rpm
+    fi
+  fi
+}
+#
 function check_enabled_modules {
   MOD="${1} ${2}"
   if [[ -f /usr/bin/dnf ]]; then
@@ -647,6 +669,7 @@ function enable_alias {
   fi
   if [[ ${NAME} = ps80 ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]]; then
     disable_dnf_module ${NAME}
+    update_rpm ${NAME}
   fi
   for _repo in ${REPOS}; do
     if [[ -z $(echo ${REPOSITORIES} | grep -o ${_repo}) ]]; then
