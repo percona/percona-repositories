@@ -69,7 +69,7 @@ COMMANDS="enable enable-only setup disable show help"
 COMPONENTS="release testing experimental"
 REPOSITORIES=""
 URL="http://repo.percona.com"
-SUPPORTED_ARCHS="i386 noarch x86_64 sources"
+SUPPORTED_ARCHS="i386 noarch x86_64 aarch64 sources"
 
 if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
