@@ -654,7 +654,7 @@ function enable_alias {
       echo "Add \"${_repo}\" repository to REPOSITORIES=\"\" variable in /etc/default/percona-release file and re-run the script"
       exit 1
     fi
-    enable_repository ${_repo}
+    enable_repository ${_repo} $2
   done
   run_update
 }
