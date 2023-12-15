@@ -136,6 +136,7 @@ PDPXC80_DESC="Percona Distribution for MySQL 8.0 - PXC"
 PPG_DESC="Percona Distribution for PostgreSQL"
 PDMDB_DESC="Percona Distribution for MongoDB"
 PDPS_DESC="Percona Distribution for MySQL - PS"
+PS_DESC="Percona Server for MySQL - PS"
 PDPXC_DESC="Percona Distribution for MySQL - PXC"
 #
 PS56REPOS="ps-56 tools"
@@ -499,7 +500,7 @@ function enable_repository {
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
-    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g' | tr -dc '0-9')
     if [[ $version != *.* && $name != "ppg" ]] ; then
       version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
     fi
@@ -507,6 +508,7 @@ function enable_repository {
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
+    [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
