@@ -51,12 +51,12 @@ function get_repos_from_site {
   fi
   REPOSITORIES=$(curl -s ${URL} | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}')
   if [ -z "$REPOSITORIES" ]; then
-    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
+    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pmm3-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
   fi
   REPOSITORIES="${REPOSITORIES/percona/original}"
   for repo in ${REPOSITORIES[@]}
     do
-      if [ ${repo} != "mysql-shell" -a ${repo} != "pmm-client" -a ${repo} != "pmm2-client" -a ${repo} != "pmm2-components" ]; then
+      if ! [[ ${REPO_NAME} =~ mysql-shell|pmm-client|pmm2-client|pmm3-client|pmm2-components ]]; then
         ALIASES+="${repo//-/} "
       else
         ALIASES+="${repo} "
@@ -103,6 +103,7 @@ PBM_DESC="Percona Backup MongoDB"
 MYSQL_SHELL_DESC="Percona MySQL Shell"
 PMM_CLIENT_DESC="PMM Client"
 PMM2_CLIENT_DESC="PMM2 Client"
+PMM3_CLIENT_DESC="PMM3 Client"
 PS56_DESC="Percona Server for MySQL 5.6"
 PS57_DESC="Percona Server for MySQL 5.7"
 PS80_DESC="Percona Server for MySQL 8.0"
@@ -175,6 +176,7 @@ MYSQL_SHELL_REPOS="mysql-shell"
 PBM_REPOS="PBM"
 PMM_CLIENT_REPOS="pmm-client"
 PMM2_CLIENT_REPOS="pmm2-client"
+PMM3_CLIENT_REPOS="pmm3-client"
 TOOLS_REPOS="tools"
 ORIGINAL_REPOS="original"
 #
@@ -497,6 +499,7 @@ function enable_repository {
   [[ ${1} = "mysql-shell" ]]    && DESCRIPTION=${MYSQL_SHELL_DESC}
   [[ ${1} = "pmm-client" ]]    && DESCRIPTION=${PMM_CLIENT_DESC}
   [[ ${1} = "pmm2-client" ]]    && DESCRIPTION=${PMM2_CLIENT_DESC}
+  [[ ${1} = "pmm3-client" ]]    && DESCRIPTION=${PMM3_CLIENT_DESC}
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
@@ -633,6 +636,7 @@ function enable_alias {
   [[ ${NAME} = mysqlshell ]] && REPOS=${MYSQL_SHELL_REPOS:-}
   [[ ${NAME} = pmmclient ]] && REPOS=${PMM_CLIENT_REPOS:-}
   [[ ${NAME} = pmm2client ]] && REPOS=${PMM2_CLIENT_REPOS:-}
+  [[ ${NAME} = pmm3client ]] && REPOS=${PMM3_CLIENT_REPOS:-}
   [[ ${NAME} = tools ]] && REPOS=${TOOLS_REPOS:-}
   [[ ${NAME} = original ]] && REPOS=${ORIGINAL_REPOS:-}
   [[ ${NAME} = percona ]] && REPOS=${ORIGINAL_REPOS:-}
