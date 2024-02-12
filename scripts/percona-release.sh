@@ -668,6 +668,8 @@ function enable_repository {
 
   if [[ -z ${2} ]] || [[ ${2} == *"--user_name="* ]] || [[ ${2} == *"--repo_token="* ]]; then
     COMPONENT="release"
+  else
+    COMPONENT=${2}
   fi
   enable_component ${1} ${COMPONENT}
   MODIFIED=YES
