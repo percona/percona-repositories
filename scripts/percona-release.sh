@@ -137,6 +137,7 @@ PDPXC80_DESC="Percona Distribution for MySQL 8.0 - PXC"
 PPG_DESC="Percona Distribution for PostgreSQL"
 PDMDB_DESC="Percona Distribution for MongoDB"
 PDPS_DESC="Percona Distribution for MySQL - PS"
+PS_DESC="Percona Server for MySQL - PS"
 PDPXC_DESC="Percona Distribution for MySQL - PXC"
 #
 PS56REPOS="ps-56 tools"
@@ -177,7 +178,7 @@ PMM_CLIENT_REPOS="pmm-client"
 PMM2_CLIENT_REPOS="pmm2-client"
 PMM3_CLIENT_REPOS="pmm3-client"
 TOOLS_REPOS="tools"
-ORIGINAL_REPO="original"
+ORIGINAL_REPOS="original"
 #
 AUTOUPDATE=NO
 MODIFIED=NO
@@ -502,7 +503,7 @@ function enable_repository {
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
-    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g' | tr -dc '0-9')
     if [[ $version != *.* && $name != "ppg" ]] ; then
       version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
     fi
@@ -510,6 +511,7 @@ function enable_repository {
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
+    [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
@@ -681,7 +683,7 @@ function enable_alias {
       echo "Add \"${_repo}\" repository to REPOSITORIES=\"\" variable in /etc/default/percona-release file and re-run the script"
       exit 1
     fi
-    enable_repository ${_repo}
+    enable_repository ${_repo} $2
   done
   run_update
 }
