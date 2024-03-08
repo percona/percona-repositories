@@ -56,10 +56,10 @@ function get_repos_from_site {
   REPOSITORIES="${REPOSITORIES/percona/original}"
   for repo in ${REPOSITORIES[@]}
     do
-      if ! [[ ${repo} =~ mysql-shell|pmm-client|pmm2-client|pmm3-client|pmm2-components ]]; then
-        ALIASES+="${repo//-/} "
-      else
+      if [[ ${repo} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
         ALIASES+="${repo} "
+      else
+        ALIASES+="${repo//-/} "
       fi
     done
   REPOSITORIES="${REPOSITORIES//$'\n'/ }"
