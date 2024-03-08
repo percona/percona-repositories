@@ -285,7 +285,7 @@ function check_repo_availability {
   [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
-  if ! [[ ${REPO_NAME} =~ mysql-shell|pmm-client|pmm2-client|pmm3-client|pmm2-components ]]; then
+  if ! [[ ${REPO_NAME} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
   REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
