@@ -550,10 +550,10 @@ function create_apt_repo {
   fi
   if [[ ${2} = release ]]; then
     _component=main
-    echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
-    echo "deb-src ${REPOURL} ${_component}" >> ${REPOFILE}
+    echo "deb [signed-by=/usr/share/keyrings/percona-keyring.gpg] ${REPOURL} ${_component}" >> ${REPOFILE}
+    echo "deb-src [signed-by=/usr/share/keyrings/percona-keyring.gpg] ${REPOURL} ${_component}" >> ${REPOFILE}
   else
-    echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
+    echo "deb [signed-by=/usr/share/keyrings/percona-keyring.gpg] ${REPOURL} ${_component}" >> ${REPOFILE}
   fi
 }
 #
