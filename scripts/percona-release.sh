@@ -432,6 +432,9 @@ function check_repo_availability {
   if ! [[ ${REPO_NAME} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
+  if [[ ${REPO_NAME} == *xinnovation ]]; then
+    REPO_NAME=$(echo ${REPO_NAME} | sed 's/innovation/-innovation/' )
+  fi
 
   if [[ ${REPO_NAME} == *-pro ]]; then
     [[ -z ${USER_NAME} ]] && echo -e "ERROR: ${REPO_NAME} requires user_name for ${REPO_NAME} repository. Use --user_name switch to pass user name" && exit 2
@@ -815,6 +818,9 @@ function enable_alias {
     local NAME=${1}
   fi
   check_specified_alias ${NAME}
+  if [[ ${NAME} == *xinnovation ]]; then
+    NAME=$( echo ${NAME} | sed 's/innovation/-innovation/' )
+  fi
   [[ ${NAME} = ps56 ]] && REPOS=${PS56REPOS:-}
   [[ ${NAME} = ps57 ]] && REPOS=${PS57REPOS:-}
   [[ ${NAME} = ps80 ]] && REPOS=${PS80REPOS:-}
