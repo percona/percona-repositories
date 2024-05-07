@@ -173,6 +173,16 @@ PDPXC80_DESC="Percona Distribution for MySQL 8.0 - PXC"
 PPG_DESC="Percona Distribution for PostgreSQL"
 PDMDB_DESC="Percona Distribution for MongoDB"
 PDPS_DESC="Percona Distribution for MySQL - PS"
+PDPS8X_INNOVATION_DESC="Percona Distribution for MySQL - PS 8x Innovation"
+PS8X_INNOVATION_DESC="Percona Server for MySQL - PS 8x Innovation"
+PXC8X_INNOVATION_DESC="Percona XtraDB Cluster 8x Innovation"
+PDPXC8X_INNOVATION_DESC="Percona Distribution XtraDB Cluster 8x Innovation"
+PXB8X_INNOVATION_DESC="Percona XtraBackup 8x Innovation"
+PDPS9X_INNOVATION_DESC="Percona Distribution for MySQL - PS 9x Innovation"
+PS9X_INNOVATION_DESC="Percona Server for MySQL - PS 9x Innovation"
+PXC9X_INNOVATION_DESC="Percona XtraDB Cluster 9x Innovation"
+PDPXC9X_INNOVATION_DESC="Percona Distribution XtraDB Cluster 9x Innovation"
+PXB9X_INNOVATION_DESC="Percona XtraBackup 9x Innovation"
 PS_DESC="Percona Server for MySQL - PS"
 PDPXC_DESC="Percona Distribution for MySQL - PXC"
 #
@@ -203,6 +213,16 @@ PPG12_REPOS="ppg-12"
 PPG12_2_REPOS="ppg-12.2"
 PPG12_3_REPOS="ppg-12.3"
 PDPS80_REPOS="pdps-8.0"
+PDPS8X_INNOVATION_REPOS="pdps-8x-innovation"
+PS8X_INNOVATION_REPOS="ps-8x-innovation"
+PXC8X_INNOVATION_REPOS="pxc-8x-innovation"
+PDPXC8X_INNOVATION_REPOS="pdpxc-8x-innovation"
+PXB8X_INNOVATION_REPOS="pxb-8x-innovation"
+PDPS9X_INNOVATION_REPOS="pdps-9x-innovation"
+PS9X_INNOVATION_REPOS="ps-9x-innovation"
+PXC9X_INNOVATION_REPOS="pxc-9x-innovation"
+PDPXC9X_INNOVATION_REPOS="pdpxc-9x-innovation"
+PXB9X_INNOVATION_REPOS="pxb-9x-innovation"
 PDPXC80_REPOS="pdpxc-8.0"
 PDPS80_19_REPOS="pdps-8.0.19"
 PDPS80_20_REPOS="pdps-8.0.20"
@@ -273,6 +293,7 @@ function check_specified_alias {
     NAME=$(echo ${1} | sed 's/-//' )
     # Ignore alias in case of -pro repos
     [[ ${NAME} == *pro ]] && found=YES
+    [[ ${NAME} == *innovation ]] && found=YES
     [[ ${_alias} = ${NAME} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
@@ -643,6 +664,16 @@ function enable_repository {
   [[ ${1} = "pdps-8.0.19" ]]    && DESCRIPTION=${PDMYSQL80_19_DESC}
   [[ ${1} = "pdps-8.0.20" ]]    && DESCRIPTION=${PDMYSQL80_20_DESC}
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
+  [[ ${1} = "pdps-8x-innovation" ]]    && DESCRIPTION=${PDPS8X_INNOVATION_DESC}
+  [[ ${1} = "ps-8x-innovation" ]]    && DESCRIPTION=${PS8X_INNOVATION_DESC}
+  [[ ${1} = "pxc-8x-innovation" ]]    && DESCRIPTION=${PXC8X_INNOVATION_DESC}
+  [[ ${1} = "pdpxc-8x-innovation" ]]    && DESCRIPTION=${PDPXC8X_INNOVATION_DESC}
+  [[ ${1} = "pxb-8x-innovation" ]]    && DESCRIPTION=${PXB8X_INNOVATION_DESC}
+  [[ ${1} = "pdps-9x-innovation" ]]    && DESCRIPTION=${PDPS9X_INNOVATION_DESC}
+  [[ ${1} = "ps-9x-innovation" ]]    && DESCRIPTION=${PS9X_INNOVATION_DESC}
+  [[ ${1} = "pxc-9x-innovation" ]]    && DESCRIPTION=${PXC9X_INNOVATION_DESC}
+  [[ ${1} = "pdpxc-9x-innovation" ]]    && DESCRIPTION=${PDPXC9X_INNOVATION_DESC}
+  [[ ${1} = "pxb-9x-innovation" ]]    && DESCRIPTION=${PXB9X_INNOVATION_DESC}
   [[ ${1} = "prel" ]]    && DESCRIPTION=${PREL_DESC}
   [[ ${1} = "proxysql" ]]    && DESCRIPTION=${PROXYSQL_DESC}
   [[ ${1} = "sysbench" ]]    && DESCRIPTION=${SYSBENCH_DESC}
@@ -778,7 +809,7 @@ function disable_dnf_module {
 #
 function enable_alias {
   local REPOS=""
-  if [[ ${1} != *-pro ]]; then
+  if [[ ${1} != *-pro ]] && [[ ${1} != *-innovation ]]; then
     local NAME=$( echo ${1} | sed 's/-//' )
   else
     local NAME=${1}
@@ -815,6 +846,16 @@ function enable_alias {
   [[ ${NAME} = pdps8.0.20 ]] && REPOS=${PDPS80_20_REPOS:-}
   [[ ${NAME} = pdpxc8.0 ]] && REPOS=${PDPXC80_REPOS:-}
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
+  [[ ${NAME} = pdps8x-innovation ]] && REPOS=${PDPS8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = ps8x-innovation ]] && REPOS=${PS8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxc8x-innovation ]] && REPOS=${PXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdpxc8x-innovation ]] && REPOS=${PDPXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxb8x-innovation ]] && REPOS=${PXB8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdps9x-innovation ]] && REPOS=${PDPS9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = ps9x-innovation ]] && REPOS=${PS9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxc9x-innovation ]] && REPOS=${PXC9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdpxc9x-innovation ]] && REPOS=${PDPXC9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxb9x-innovation ]] && REPOS=${PXB9X_INNOVATION_REPOS:-}
   [[ ${NAME} = prel ]] && REPOS=${PREL_REPOS:-}
   [[ ${NAME} = proxysql ]] && REPOS=${PROXYSQL_REPOS:-}
   [[ ${NAME} = sysbench ]] && REPOS=${SYSBENCH_REPOS:-}
@@ -838,7 +879,7 @@ function enable_alias {
       [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
     fi
   fi
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]]; then
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]] || [[ ${NAME} == *innovation ]]; then
     disable_dnf_module ${NAME}
     update_rpm ${NAME}
   fi
