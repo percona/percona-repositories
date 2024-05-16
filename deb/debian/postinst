@@ -32,12 +32,10 @@ case "$1" in
           . /etc/default/percona-release
       fi
       if [ "${REPOSITORIES}" == "" ]; then
-          REPOSITORIES="original prel"
-      fi
-      if echo "${REPOSITORIES} | grep -Fq original"; then
-          /usr/bin/percona-release enable original release || true
+          REPOSITORIES="prel telemetry"
       fi
       /usr/bin/percona-release enable prel release || true
+      /usr/bin/percona-release enable telemetry release || true
       if [[ -f  ${OLDREPOFILE} ]]; then
         mv -f ${OLDREPOFILE} ${OLDREPOFILE}.bak
       fi
@@ -51,9 +49,11 @@ case "$1" in
 cat << EOF
 The percona-release package now contains a percona-release script that can enable additional repositories for our newer products.
 
-For example, to enable the Percona Server for MySQL 8.0 repository use:
+Note: currently there are not any enabled repositories that contain Percona products or distributions. We recommend you enabling Percona Distribions instead of separate product repos as in this case you will get not only database itself but a set of other commponets that will help you working with your database.
 
-  percona-release setup ps80
+For example, to enable the Percona Distribution for MySQL 8.0 repository use:
+
+  percona-release setup pdps8.0
 
 Note: To avoid conflicts with older product versions, the percona-release setup command may disable our original repository for some products.
 
