@@ -84,7 +84,7 @@ function get_repos_from_site {
 
   REPOSITORIES=$(curl -s ${URL} | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}')
   if [ -z "$REPOSITORIES" ]; then
-    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pmm3-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
+    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel telemetry proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pmm3-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
   fi
 
   REPOSITORIES="${REPOSITORIES} ps-80-pro psmdb-60-pro psmdb-70-pro"
@@ -129,8 +129,10 @@ fi
 
 #
 DESCRIPTION=""
-DEFAULT_REPO_DESC="Percona Original"
+DEFAULT_REPO_DESC="Percona Packaging Repository"
 PREL_DESC="Percona Release"
+TELEMETRY_DESC="Percona Telemetry"
+VALKEY_DESC="Percona Valkey"
 PT_DESC="Percona Toolkit"
 SYSBENCH_DESC="Sysbench"
 PROXYSQL_DESC="Proxysql"
@@ -227,7 +229,7 @@ PDPXC80_REPOS="pdpxc-8.0"
 PDPS80_19_REPOS="pdps-8.0.19"
 PDPS80_20_REPOS="pdps-8.0.20"
 PDPXC80_19_REPOS="pdpxc-8.0.19"
-PREL_REPOS="prel"
+PREL_REPOS="prel telemetry"
 PROXYSQL_REPOS="proxysql"
 SYSBENCH_REPOS="sysbench"
 PT_REPOS="pt"
@@ -519,6 +521,7 @@ function create_yum_repo {
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
+  [[ ${1} = "telemetry" ]] && ARCH_LIST="noarch"
   for _key in ${ARCH_LIST}; do
     if ! is_supported_arch "$_key"; then
       echo "WARNING: Skipping ${_key} architecture, as it's not supported"
@@ -613,19 +616,19 @@ function enable_component {
 function disable_component {
   local _repo=percona-${1}
   if [[ ${1} = all ]]; then
-    for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*"); do
+    for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*" -not -iname "*telemetry-release*"); do
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
   elif [[ -z ${2} ]]; then
     for comp in testing experimental; do
       mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
     done
-    if [[ ${_repo} != *prel ]]; then
+    if [[ ${_repo} != *prel && ${_repo} != *telemetry ]]; then
       mv -f ${LOCATION}/${_repo}-release.${EXT} ${LOCATION}/${_repo}-release.${EXT}.bak 2>/dev/null
     fi
   else
     check_specified_component ${2}
-    if [[ ${_repo} != *prel ]]; then
+    if [[ ${_repo} != *prel && ${_repo} != *telemetry ]]; then
       mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
     else
       if [[ ${2} != "release" ]]; then
@@ -678,6 +681,8 @@ function enable_repository {
   [[ ${1} = "pdpxc-9x-innovation" ]]    && DESCRIPTION=${PDPXC9X_INNOVATION_DESC}
   [[ ${1} = "pxb-9x-innovation" ]]    && DESCRIPTION=${PXB9X_INNOVATION_DESC}
   [[ ${1} = "prel" ]]    && DESCRIPTION=${PREL_DESC}
+  [[ ${1} = "telemetry" ]]    && DESCRIPTION=${TELEMETRY_DESC}
+  [[ ${1} = "valkey" ]]    && DESCRIPTION=${VALKEY_DESC}
   [[ ${1} = "proxysql" ]]    && DESCRIPTION=${PROXYSQL_DESC}
   [[ ${1} = "sysbench" ]]    && DESCRIPTION=${SYSBENCH_DESC}
   [[ ${1} = "pt" ]]    && DESCRIPTION=${PT_DESC}
@@ -718,7 +723,7 @@ function disable_repository {
     disable_component all
   else
     check_specified_repo ${1}
-    if [[ ${1} != "prel" ]]; then
+    if [[ ${1} != "prel" && ${1} != "telemetry" ]]; then
       disable_component ${1} ${2}
     else
       if [[ ${2} != "release" ]]; then
