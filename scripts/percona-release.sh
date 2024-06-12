@@ -700,9 +700,9 @@ function enable_repository {
     fi
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
+    [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
-    [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
@@ -868,6 +868,7 @@ function enable_alias {
   [[ ${NAME} = pdpxc9x-innovation ]] && REPOS=${PDPXC9X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxb9x-innovation ]] && REPOS=${PXB9X_INNOVATION_REPOS:-}
   [[ ${NAME} = prel ]] && REPOS=${PREL_REPOS:-}
+  [[ ${NAME} = telemetry ]] && REPOS=${PREL_REPOS:-}
   [[ ${NAME} = proxysql ]] && REPOS=${PROXYSQL_REPOS:-}
   [[ ${NAME} = sysbench ]] && REPOS=${SYSBENCH_REPOS:-}
   [[ ${NAME} = pt ]] && REPOS=${PT_REPOS:-}
