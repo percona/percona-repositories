@@ -100,7 +100,7 @@ function get_repos_from_site {
   REPOSITORIES="${REPOSITORIES//$'\n'/ }"
 }
 
-COMMANDS="enable enable-only setup disable show help"
+COMMANDS="enable enable-silent enable-only setup disable show help"
 COMPONENTS="release testing experimental"
 REPOSITORIES=""
 URL="http://repo.percona.com"
@@ -483,7 +483,7 @@ function show_message {
 #
 function show_help {
   echo
-  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT] | show"
+  echo "Usage:     $(basename ${0}) enable | enable-silent | enable-only | setup | disable (<REPO> | all) [COMPONENT] | show"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
   echo "  Example: $(basename ${0}) setup ps57 | ps-57"
@@ -930,6 +930,10 @@ case $(echo ${1} | sed 's/^--//g') in
     shift
     enable_repository $@
     run_update
+    ;;
+  enable-silent )
+    shift
+    enable_repository $@
     ;;
   enable-only )
     shift
