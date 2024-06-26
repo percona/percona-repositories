@@ -272,7 +272,7 @@ function show_enabled {
       fi
     done
   elif [[ -f /etc/debian_version ]]; then
-    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $2$4}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
+    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $3$5}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
     echo "==>> ERROR: Unsupported operating system"
     exit 1
