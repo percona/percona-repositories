@@ -31,6 +31,19 @@ case "$1" in
       if [ -f /etc/default/percona-release ]; then
           . /etc/default/percona-release
       fi
+      directory="/etc/apt/sources.list.d"
+      for file in $directory/percona*; do
+        if [[ ! $file == *.back ]]; then
+          filename=$(basename "$file")
+          IFS='-' read -r -a parts <<< "$filename"
+          if [[ ${#parts[@]} -ge 3 ]]; then
+            second_word=${parts[1]}
+            third_word=${parts[2]}
+            third_word=${third_word%.*}
+            percona-release enable-silent "$second_word" "$third_word"
+          fi
+        fi
+      done
       if [ "${REPOSITORIES}" == "" ]; then
           REPOSITORIES="prel telemetry"
       fi
