@@ -33,7 +33,7 @@ case "$1" in
       fi
       directory="/etc/apt/sources.list.d"
       for file in $directory/percona*; do
-        if [[ ! $file == *.back ]]; then
+        if [[ ! $file == *.bak ]]; then
           filename=$(basename "$file")
           IFS='-' read -r -a parts <<< "$filename"
           if [[ ${#parts[@]} -ge 3 ]]; then
