@@ -742,26 +742,27 @@ function disable_repository {
 }
 #
 function update_rpm {
-  RHEL=$(rpm --eval %rhel)
- echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  UPDATES=$(yum check-update rpm)
-  if [ $? -eq 100 ]; then
-    if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
-      RHEL=$(rpm --eval %rhel)
-      if [[ ${INTERACTIVE} = YES ]]; then
-        echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
-        read -r -p "Do you want to update it? [y/N] " response
-        if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-        then
-          dnf -y update rpm
+  if [[ -f /usr/bin/dnf ]]; then
+    RHEL=$(rpm --eval %rhel)
+    UPDATES=$(yum check-update rpm)
+    if [ $? -eq 100 ]; then
+      if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
+        RHEL=$(rpm --eval %rhel)
+        if [[ ${INTERACTIVE} = YES ]]; then
+          echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
+          read -r -p "Do you want to update it? [y/N] " response
+          if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+          then
+            dnf -y update rpm
+          else
+            echo "Please note that using an old version of rpm package can cause dependency issues or conflicts with existing packages."
+            echo "If in the future you decide to update rpm package please execute the next command:"
+            echo "  dnf update rpm"
+          fi
         else
-          echo "Please note that using an old version of rpm package can cause dependency issues or conflicts with existing packages."
-          echo "If in the future you decide to update rpm package please execute the next command:"
-          echo "  dnf update rpm"
+          echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
+          dnf -y update rpm
         fi
-      else
-        echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
-        dnf -y update rpm
       fi
     fi
   fi
