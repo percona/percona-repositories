@@ -32,15 +32,56 @@ case "$1" in
           . /etc/default/percona-release
       fi
       directory="/etc/apt/sources.list.d"
+
       for file in $directory/percona*; do
         if [[ ! $file == *.bak ]]; then
+          # Skip files that contain 'signed-by='
+          if grep -q 'signed-by=' "$file"; then
+            echo "Skipping $file because it contains 'signed-by='"
+            continue
+          fi
+
           filename=$(basename "$file")
           IFS='-' read -r -a parts <<< "$filename"
-          if [[ ${#parts[@]} -ge 3 ]]; then
-            second_word=${parts[1]}
-            third_word=${parts[2]}
-            third_word=${third_word%.*}
-            percona-release enable-silent "$second_word" "$third_word"
+          
+          # Remove "percona-" prefix if present
+          if [[ ${parts[0]} == "percona" ]]; then
+            unset parts[0]
+            parts=("${parts[@]}")
+          fi
+          
+          # Process filename parts
+          part_count=${#parts[@]}
+          
+          if [[ $part_count -ge 2 ]]; then
+            repo_name="${parts[0]}"
+            repo_type="${parts[1]}"
+            
+            # If there are more parts, append them to repo_name and repo_type accordingly
+            if [[ $part_count -ge 3 ]]; then
+              repo_name="${repo_name}-${parts[1]}"
+              repo_type="${parts[2]}"
+              
+              if [[ $part_count -ge 4 ]]; then
+                repo_name="${repo_name}-${parts[2]}"
+                repo_type="${parts[3]}"
+              fi
+            fi
+            
+            # Remove file extension if present
+            repo_type=${repo_type%.*}
+            
+            # Check for specific repo types and exclude them from repo_name
+            case "$repo_type" in
+              release|testing|experimental)
+                percona-release enable-silent "$repo_name" "$repo_type"
+                ;;
+              *)
+                echo "ERROR: Unknown component specification: $repo_type"
+                ;;
+            esac
+          else
+            echo "ERROR: Invalid filename format: $filename"
           fi
         fi
       done
@@ -55,7 +96,7 @@ case "$1" in
       fi
       for file in $(find /etc/apt/sources.list.d/ -mmin -3 -type f -iname "percona*.list.bak" -not -iname "*prel-release*"); do
         new_file=$(echo $file | sed 's/.bak//')
-	if [[ $new_file != ${OLDREPOFILE} ]]; then
+	      if [[ $new_file != ${OLDREPOFILE} ]]; then
           mv $file $new_file
         fi
       done
