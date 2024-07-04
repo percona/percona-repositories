@@ -27,17 +27,29 @@ set -e
 
 case "$1" in
     configure)
-      eval "/usr/bin/apt-key add /etc/apt/trusted.gpg.d/percona-keyring.gpg  ${SUPRESSOR}"
+      eval "/usr/bin/apt-key add /usr/share/keyrings/percona-keyring.gpg  ${SUPRESSOR}"
       if [ -f /etc/default/percona-release ]; then
           . /etc/default/percona-release
       fi
+      directory="/etc/apt/sources.list.d"
+      for file in $directory/percona*; do
+        if [[ ! $file == *.bak ]]; then
+          filename=$(basename "$file")
+          IFS='-' read -r -a parts <<< "$filename"
+          if [[ ${#parts[@]} -ge 3 ]]; then
+            second_word=${parts[1]}
+            third_word=${parts[2]}
+            third_word=${third_word%.*}
+            percona-release enable-silent "$second_word" "$third_word"
+          fi
+        fi
+      done
       if [ "${REPOSITORIES}" == "" ]; then
-          REPOSITORIES="original prel"
-      fi
-      if echo "${REPOSITORIES} | grep -Fq original"; then
-          /usr/bin/percona-release enable original release || true
+          REPOSITORIES="prel telemetry"
       fi
       /usr/bin/percona-release enable prel release || true
+      /usr/bin/percona-release enable telemetry release || true
+      /usr/bin/percona-release enable pmm2-client release || true
       if [[ -f  ${OLDREPOFILE} ]]; then
         mv -f ${OLDREPOFILE} ${OLDREPOFILE}.bak
       fi
@@ -51,9 +63,11 @@ case "$1" in
 cat << EOF
 The percona-release package now contains a percona-release script that can enable additional repositories for our newer products.
 
-For example, to enable the Percona Server for MySQL 8.0 repository use:
+Note: currently there are no repositories that contain Percona products or distributions enabled. We recommend you to enable Percona Distribution repositories instead of individual product repositories, because with the Distribution you will get not only the database itself but also a set of other componets that will help you work with your database.
 
-  percona-release setup ps80
+For example, to enable the Percona Distribution for MySQL 8.0 repository use:
+
+  percona-release setup pdps8.0
 
 Note: To avoid conflicts with older product versions, the percona-release setup command may disable our original repository for some products.
 

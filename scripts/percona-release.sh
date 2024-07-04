@@ -10,6 +10,38 @@ if [[ $(id -u) -gt 0 ]]; then
 fi
 #
 
+shell_quote_string() {
+  echo "$1" | sed -e 's,\([^a-zA-Z0-9/_.=-]\),\\\1,g'
+}
+
+append_arg_to_args () {
+  args="$args "$(shell_quote_string "$1")
+}
+
+parse_arguments() {
+    pick_args=
+    if test "$1" = PICK-ARGS-FROM-ARGV
+    then
+        pick_args=1
+        shift
+    fi
+
+    for arg do
+        val=$(echo "$arg" | sed -e 's;^--[^=]*=;;')
+        case "$arg" in
+            --user_name=*) USER_NAME="$val" ;;
+            --repo_token=*) REPO_TOKEN="$val" ;;
+            --help) show_help ;;
+            *)
+              if test -n "$pick_args"
+              then
+                  append_arg_to_args "$arg"
+              fi
+              ;;
+        esac
+    done
+}
+
 PRODUCTS_ABBREVIATIONS=("pdmdb" "pdps" "pdpxc" "pmm" "ppg11" "ppg12" "ppg13" "ppg14" "psmdb" "px")
 
 function sort_array {
@@ -22,7 +54,7 @@ function sort_array {
       counter=1
       for abbr in ${PRODUCTS_ABBREVIATIONS[@]}
         do
-	  if [[ "${element//-/}" =~ ^$abbr.*$ ]]; then
+          if [[ "${element//-/}" =~ ^$abbr.*$ ]]; then
             if [[ $flagforabbr == $abbr ]]; then
               PRODUCTS+="$element "
             else
@@ -31,7 +63,7 @@ function sort_array {
               PRODUCTS=()
               PRODUCTS+="$element "
               break
-	    fi
+            fi
           else
             if [[ $counter == ${#PRODUCTS_ABBREVIATIONS[@]} ]]; then
               OTHER_PRODUCTS+="$element "
@@ -49,27 +81,30 @@ function get_repos_from_site {
   if [ "${REPOSITORIES}" != "" ]; then
       return
   fi
+
   REPOSITORIES=$(curl -s ${URL} | tail -n +28  | grep href | grep -v https | awk -Fhref=\" '{print $2}' | awk -F\/ '{print $1}')
   if [ -z "$REPOSITORIES" ]; then
-    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
+    REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel telemetry proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pmm3-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
   fi
+
+  REPOSITORIES="${REPOSITORIES} ps-80-pro psmdb-60-pro psmdb-70-pro ps-57-eol pxc-57-eol"
   REPOSITORIES="${REPOSITORIES/percona/original}"
   for repo in ${REPOSITORIES[@]}
     do
-      if [ ${repo} != "mysql-shell" -a ${repo} != "pmm-client" -a ${repo} != "pmm2-client" -a ${repo} != "pmm2-components" ]; then
-        ALIASES+="${repo//-/} "
-      else
+      if [[ ${repo} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
         ALIASES+="${repo} "
+      else
+        ALIASES+="${repo//-/} "
       fi
     done
   REPOSITORIES="${REPOSITORIES//$'\n'/ }"
 }
 
-COMMANDS="enable enable-only setup disable show help"
+COMMANDS="enable enable-silent enable-only setup disable show help"
 COMPONENTS="release testing experimental"
 REPOSITORIES=""
 URL="http://repo.percona.com"
-SUPPORTED_ARCHS="i386 noarch x86_64 sources"
+SUPPORTED_ARCHS="i386 noarch x86_64 aarch64 sources"
 
 if [[ -f /etc/default/percona-release ]]; then
     source /etc/default/percona-release
@@ -94,8 +129,10 @@ fi
 
 #
 DESCRIPTION=""
-DEFAULT_REPO_DESC="Percona Original"
+DEFAULT_REPO_DESC="Percona Packaging Repository"
 PREL_DESC="Percona Release"
+TELEMETRY_DESC="Percona Telemetry"
+VALKEY_DESC="Percona Valkey"
 PT_DESC="Percona Toolkit"
 SYSBENCH_DESC="Sysbench"
 PROXYSQL_DESC="Proxysql"
@@ -103,9 +140,13 @@ PBM_DESC="Percona Backup MongoDB"
 MYSQL_SHELL_DESC="Percona MySQL Shell"
 PMM_CLIENT_DESC="PMM Client"
 PMM2_CLIENT_DESC="PMM2 Client"
+PMM3_CLIENT_DESC="PMM3 Client"
 PS56_DESC="Percona Server for MySQL 5.6"
 PS57_DESC="Percona Server for MySQL 5.7"
 PS80_DESC="Percona Server for MySQL 8.0"
+PS80_PRO_DESC="Percona Server for MySQL 8.0 Pro"
+PS57_EOL_DESC="Percona Server for MySQL 5.7 EOL"
+PXC57_EOL_DESC="Percona XtraDB Cluster 5.7 EOL"
 PXB24_DESC="Percona XtraBackup 2.4"
 PXB80_DESC="Percona XtraBackup 8.0"
 PXC56_DESC="Percona XtraDB Cluster 5.6"
@@ -136,12 +177,25 @@ PDPXC80_DESC="Percona Distribution for MySQL 8.0 - PXC"
 PPG_DESC="Percona Distribution for PostgreSQL"
 PDMDB_DESC="Percona Distribution for MongoDB"
 PDPS_DESC="Percona Distribution for MySQL - PS"
+PDPS8X_INNOVATION_DESC="Percona Distribution for MySQL - PS 8x Innovation"
+PS8X_INNOVATION_DESC="Percona Server for MySQL - PS 8x Innovation"
+PXC8X_INNOVATION_DESC="Percona XtraDB Cluster 8x Innovation"
+PDPXC8X_INNOVATION_DESC="Percona Distribution XtraDB Cluster 8x Innovation"
+PXB8X_INNOVATION_DESC="Percona XtraBackup 8x Innovation"
+PDPS9X_INNOVATION_DESC="Percona Distribution for MySQL - PS 9x Innovation"
+PS9X_INNOVATION_DESC="Percona Server for MySQL - PS 9x Innovation"
+PXC9X_INNOVATION_DESC="Percona XtraDB Cluster 9x Innovation"
+PDPXC9X_INNOVATION_DESC="Percona Distribution XtraDB Cluster 9x Innovation"
+PXB9X_INNOVATION_DESC="Percona XtraBackup 9x Innovation"
 PS_DESC="Percona Server for MySQL - PS"
 PDPXC_DESC="Percona Distribution for MySQL - PXC"
 #
 PS56REPOS="ps-56 tools"
 PS57REPOS="ps-57 pxb-24"
 PS80REPOS="ps-80 tools"
+PS57EOLREPOS="ps-57-eol"
+PXC57EOLREPOS="pxc-57-eol"
+PS80PROREPOS="ps-80-pro"
 PXC56REPOS="pxc-56 tools"
 PXC57REPOS="pxc-57 pxb-24"
 PXC80REPOS="pxc-80 tools"
@@ -150,6 +204,8 @@ PXB80REPOS="pxb-80"
 PSMDB36REPOS="psmdb-36 pbm"
 PSMDB40REPOS="psmdb-40 tools"
 PSMDB42REPOS="psmdb-42 tools"
+PSMDB60PROREPOS="psmdb-60-pro"
+PSMDB70PROREPOS="psmdb-70-pro"
 PPG11REPOS="ppg-11"
 PPG11_5_REPOS="ppg-11.5"
 PPG11_6_REPOS="ppg-11.6"
@@ -163,11 +219,21 @@ PPG12_REPOS="ppg-12"
 PPG12_2_REPOS="ppg-12.2"
 PPG12_3_REPOS="ppg-12.3"
 PDPS80_REPOS="pdps-8.0"
+PDPS8X_INNOVATION_REPOS="pdps-8x-innovation"
+PS8X_INNOVATION_REPOS="ps-8x-innovation"
+PXC8X_INNOVATION_REPOS="pxc-8x-innovation"
+PDPXC8X_INNOVATION_REPOS="pdpxc-8x-innovation"
+PXB8X_INNOVATION_REPOS="pxb-8x-innovation"
+PDPS9X_INNOVATION_REPOS="pdps-9x-innovation"
+PS9X_INNOVATION_REPOS="ps-9x-innovation"
+PXC9X_INNOVATION_REPOS="pxc-9x-innovation"
+PDPXC9X_INNOVATION_REPOS="pdpxc-9x-innovation"
+PXB9X_INNOVATION_REPOS="pxb-9x-innovation"
 PDPXC80_REPOS="pdpxc-8.0"
 PDPS80_19_REPOS="pdps-8.0.19"
 PDPS80_20_REPOS="pdps-8.0.20"
 PDPXC80_19_REPOS="pdpxc-8.0.19"
-PREL_REPOS="prel"
+PREL_REPOS="prel telemetry"
 PROXYSQL_REPOS="proxysql"
 SYSBENCH_REPOS="sysbench"
 PT_REPOS="pt"
@@ -175,6 +241,7 @@ MYSQL_SHELL_REPOS="mysql-shell"
 PBM_REPOS="PBM"
 PMM_CLIENT_REPOS="pmm-client"
 PMM2_CLIENT_REPOS="pmm2-client"
+PMM3_CLIENT_REPOS="pmm3-client"
 TOOLS_REPOS="tools"
 ORIGINAL_REPOS="original"
 #
@@ -209,7 +276,7 @@ function show_enabled {
       fi
     done
   elif [[ -f /etc/debian_version ]]; then
-    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $2$4}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
+    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $3$5}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   else
     echo "==>> ERROR: Unsupported operating system"
     exit 1
@@ -230,6 +297,10 @@ function check_specified_alias {
   [[ -z ${1} ]] && echo "ERROR: No product alias specified!" && show_help && exit 2
   for _alias in ${ALIASES}; do
     NAME=$(echo ${1} | sed 's/-//' )
+    # Ignore alias in case of -pro repos
+    [[ ${NAME} == *pro ]] && found=YES
+    [[ ${NAME} == *eol ]] && found=YES
+    [[ ${NAME} == *innovation ]] && found=YES
     [[ ${_alias} = ${NAME} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
@@ -237,6 +308,41 @@ function check_specified_alias {
     echo "Available product aliases are: ${ALIASES}"
     exit 2
   fi
+}
+
+function read_credentials_from_config {
+
+  config_file="${HOME}/.percona-private-repos.config"
+
+  section_name=$1
+
+  # Check if section_name is provided
+  if [ -z "$section_name" ]; then
+    echo "Usage: $0 <section_name>"
+    exit 1
+  fi
+
+  # Check if the config file exists
+  if [ ! -f "$config_file" ]; then
+    echo "Config file not found: $config_file"
+    exit 1
+  fi
+
+  # Read the specified section from the config file
+  section_content=$(awk -v section="$section_name" '/^\[/{flag=0} /^\['"$section_name"'\]/{flag=1;next} flag' "$config_file")
+
+  # Check if the section exists
+  if [ -z "$section_content" ]; then
+    echo "Section not found: [$section_name]"
+    exit 1
+  fi
+
+  # Parse the section content and export variables
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^[a-zA-Z_][a-zA-Z0-9_]*= ]]; then
+        export "$line"
+    fi
+  done <<< "$section_content"
 }
 
 function check_specified_repo {
@@ -250,7 +356,14 @@ function check_specified_repo {
     echo "Available repositories are: ${REPOSITORIES}"
     exit 2
   fi
+
+  if [[ "${REPO_NAME}" == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+    if [[ -z ${USER_NAME} ]] || [[ -z ${REPO_TOKEN} ]]; then
+      echo -e "ERROR: ${REPO_NAME} requires user_name and repo_token for ${REPO_NAME} repository. Either pass credentials using --user_name and --repo_token switches or create file ${HOME}/.percona-private-repos.config with following values:\n\n[${REPO_NAME}]\nUSER_NAME=<Your PRO repository user name>\nREPO_TOKEN=<Your PRO repository token>" && exit 2
+    fi
+  fi
 }
+
 #
 function check_os_support {
    REPO_NAME=$1
@@ -261,13 +374,31 @@ function check_os_support {
     else
       OS_VER=$(cat /etc/system-release | awk '{print $(NF-1)}' | awk -F'.' '{print $1}')
     fi
-    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+
+    if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+      [[ -z ${USER_NAME} ]] && echo -e "ERROR: ${REPO_NAME} requires user_name for ${REPO_NAME} repository. Use --user_name switch to pass user name" && exit 2
+      [[ -z ${REPO_TOKEN} ]] && echo -e "ERROR: ${REPO_NAME} requires repo_token for ${REPO_NAME} repository. Use --repo_token switch to pass repository token" && exit 2
+    fi
+
+    if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    else
+      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    fi
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    if [[ ${REPO_NAME} == *-pro ]]; then
+      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    else
+      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+    fi
   fi
   if [[ ${reply} != 200 ]]; then
-      echo "Specified repository is not supported for current operating system!"
+      if [[ ${REPO_NAME} == *-pro ]]; then
+        echo "Specified repository is not supported for current operating system or check your credentials."
+      else
+        echo "Specified repository is not supported for current operating system!"
+      fi
       exit 2
   fi
 }
@@ -280,24 +411,59 @@ function check_repo_availability {
     REPO_NAME=${2}
     COMPONENT=${3}
   fi
-  [[ -z ${COMPONENT} ]] && COMPONENT="release"
+
+  if [[ -z ${COMPONENT} ]] || [[ ${COMPONENT} == *"--user_name="* ]] || [[ ${COMPONENT} == *"--repo_token="* ]]; then
+    COMPONENT="release"
+  fi
+
+  if [[ "${REPO_NAME}" == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+    if [ -f "${HOME}/.percona-private-repos.config" ]; then
+      read_credentials_from_config ${REPO_NAME}
+    else
+      parse_arguments PICK-ARGS-FROM-ARGV "$@"
+    fi
+  fi
+
+  if [[ "${REPO_NAME}" == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+        if [[ -z ${USER_NAME} ]] || [[ -z ${REPO_TOKEN} ]]; then
+          echo -e "ERROR: ${REPO_NAME} requires user_name and repo_token for ${REPO_NAME} repository. Either pass credentials using --user_name and --repo_token switches or create file ${HOME}/.percona-private-repos.config with following values:\n\n[${REPO_NAME}]\nUSER_NAME=<Your PRO repository user name>\nREPO_TOKEN=<Your PRO repository token>" && exit 2
+        fi
+  fi
+
+  if [[ -z ${COMPONENT} ]] || [[ ${COMPONENT} == *"user_name="* ]] || [[ ${COMPONENT} == *"repo_token="* ]]; then
+     COMPONENT="release"
+  fi
   [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
-  if [ ${REPO_NAME} != "mysql-shell" -a ${REPO_NAME} != "pmm-client" -a ${REPO_NAME} != "pmm2-client" -a ${REPO_NAME} != "pmm2-components" ]; then
+  if ! [[ ${REPO_NAME} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
-  REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
+  if [[ ${REPO_NAME} == *xinnovation ]]; then
+    REPO_NAME=$(echo ${REPO_NAME} | sed 's/innovation/-innovation/' )
+  fi
+
+  if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+    [[ -z ${USER_NAME} ]] && echo -e "ERROR: ${REPO_NAME} requires user_name for ${REPO_NAME} repository. Use --user_name switch to pass user name" && exit 2
+    [[ -z ${REPO_TOKEN} ]] && echo -e "ERROR: ${REPO_NAME} requires repo_token for ${REPO_NAME} repository. Use --repo_token switch to pass repository token" && exit 2
+    REPO_LINK="http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/"
+  else
+    REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
+  fi
   reply=$("${CURL_EXEC[@]}" -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
-    if [[ ${REPOSITORIES} != "*${REPONAME}*" ]]; then
+    if [[ ${REPOSITORIES} != "*${REPO_NAME}*" ]]; then
       REPO_ALIAS=$(echo ${REPO_NAME} | sed 's/-//')
       ALIASES="${REPOSITORIES} ${REPO_ALIAS}"
       REPOSITORIES="${REPOSITORIES} ${REPO_NAME}"
       check_os_support ${REPO_NAME} ${COMPONENT}
     fi
   else
-    echo "Specified repository does not exist: ${REPO_LINK}"
+    if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+      echo "Specified repository does not exist: ${REPO_LINK} or check your repository credentials"
+    else
+      echo "Specified repository does not exist: ${REPO_LINK}"
+    fi
     exit 2
   fi
 }
@@ -322,26 +488,30 @@ function show_message {
 #
 function show_help {
   echo
-  echo "Usage:     $(basename ${0}) enable | enable-only | setup | disable (<REPO> | all) [COMPONENT] | show"
+  echo "Usage:     $(basename ${0}) enable | enable-silent | enable-only | setup | disable (<REPO> | all) [COMPONENT] | show"
   echo "  Example: $(basename ${0}) enable tools release"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental"
   echo "  Example: $(basename ${0}) setup ps57 | ps-57"
   echo "  Example: $(basename ${0}) setup -y ps57 | setup -y ps-57"
   echo "  Example: $(basename ${0}) show"
+  echo "  Example: $(basename ${0}) enable ps-80-pro release --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) enable-only ps-80 experimental --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) setup ps-80-pro --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) setup -y ps-80-pro --user_name=<User Name> --repo_token=<Pro repository token>"
   echo
   echo "Available commands:          ${COMMANDS}"
   echo
   echo "Available setup products:    "
-  sort_array "${ALIASES}"
+  sort_array "${ALIASES} ps-80-pro psmdb-70-pro psmdb-60-pro"
   echo
   echo "Available repositories:      "
-  sort_array "${REPOSITORIES}"
+  sort_array "${REPOSITORIES} ps-80-pro psmdb-70-pro psmdb-60-pro"
   echo
   echo "Available components:        ${COMPONENTS}"
   echo
   echo "The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
   echo "The \"show\" command will list all enabled Percona repos on the system."
-  echo "Please see percona-release page for help: https://www.percona.com/doc/percona-repo-config/percona-release.html"
+  echo "Please see percona-release page for help: https://docs.percona.com/percona-software-repositories/percona-release.html"
 }
 #
 function run_update {
@@ -356,6 +526,7 @@ function create_yum_repo {
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
+  [[ ${1} = "telemetry" ]] && ARCH_LIST="${ARCH} sources"
   for _key in ${ARCH_LIST}; do
     if ! is_supported_arch "$_key"; then
       echo "WARNING: Skipping ${_key} architecture, as it's not supported"
@@ -373,7 +544,14 @@ function create_yum_repo {
       rPATH="/${_key}"
       ENABLE=1
     fi
-    echo "baseurl = ${URL}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
+
+    if [[ ${_repo} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+      [[ -z ${USER_NAME} ]] && echo -e "ERROR: ${REPO_NAME} requires user_name for ${REPO_NAME} repository. Use --user_name switch to pass user name" && exit 2
+      [[ -z ${REPO_TOKEN} ]] && echo -e "ERROR: ${REPO_NAME} requires repo_token for ${REPO_NAME} repository. Use --repo_token switch to pass repository token" && exit 2
+      echo "baseurl = ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
+    else
+      echo "baseurl = ${URL}/${_repo}/yum/${2}/\$releasever/${DIR}${rPATH}" >> ${REPOFILE}
+    fi
     echo "enabled = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
     [[ -n "${CURL_PROXY}" ]] && echo "proxy = ${CURL_PROXY}" >> ${REPOFILE}
@@ -388,6 +566,13 @@ function create_apt_repo {
 
   [[ ${1} = "original" ]] && _repo=percona
   REPOURL="${URL}/${_repo}/apt ${CODENAME}"
+
+  if [[ ${_repo} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
+    [[ -z ${USER_NAME} ]] && echo -e "ERROR: ${REPO_NAME} requires user_name for ${REPO_NAME} repository. Use --user_name switch to pass user name" && exit 2
+    [[ -z ${REPO_TOKEN} ]] && echo -e "ERROR: ${REPO_NAME} requires repo_token for ${REPO_NAME} repository. Use --repo_token switch to pass repository token" && exit 2
+    REPOURL="${URL}/private/${USER_NAME}-${REPO_TOKEN}/${_repo}/apt ${CODENAME}"
+  fi
+
   if [[ -n "${CURL_PROXY}" ]]; then
       _proxyline="Acquire::${APT_PROXY_SCHEME}::Proxy::${URL/${APT_PROXY_SCHEME}:\/\//} \"${CURL_PROXY}\";"
 
@@ -397,10 +582,10 @@ function create_apt_repo {
   fi
   if [[ ${2} = release ]]; then
     _component=main
-    echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
-    echo "deb-src ${REPOURL} ${_component}" >> ${REPOFILE}
+    echo "deb [signed-by=/usr/share/keyrings/percona-keyring.gpg] ${REPOURL} ${_component}" >> ${REPOFILE}
+    echo "deb-src [signed-by=/usr/share/keyrings/percona-keyring.gpg] ${REPOURL} ${_component}" >> ${REPOFILE}
   else
-    echo "deb ${REPOURL} ${_component}" >> ${REPOFILE}
+    echo "deb [signed-by=/usr/share/keyrings/percona-keyring.gpg] ${REPOURL} ${_component}" >> ${REPOFILE}
   fi
 }
 #
@@ -436,19 +621,19 @@ function enable_component {
 function disable_component {
   local _repo=percona-${1}
   if [[ ${1} = all ]]; then
-    for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*"); do
+    for REPO_FILE in $(find ${LOCATION} -type f -iname "percona*.${EXT}" -not -iname "*prel-release*" -not -iname "*telemetry-release*"); do
       mv -f ${REPO_FILE} ${REPO_FILE}.bak 2>/dev/null
     done
   elif [[ -z ${2} ]]; then
     for comp in testing experimental; do
       mv -f ${LOCATION}/${_repo}-${comp}.${EXT} ${LOCATION}/${_repo}-${comp}.${EXT}.bak 2>/dev/null
     done
-    if [[ ${_repo} != *prel ]]; then
+    if [[ ${_repo} != *prel && ${_repo} != *telemetry ]]; then
       mv -f ${LOCATION}/${_repo}-release.${EXT} ${LOCATION}/${_repo}-release.${EXT}.bak 2>/dev/null
     fi
   else
     check_specified_component ${2}
-    if [[ ${_repo} != *prel ]]; then
+    if [[ ${_repo} != *prel && ${_repo} != *telemetry ]]; then
       mv -f ${LOCATION}/${_repo}-${2}.${EXT} ${LOCATION}/${_repo}-${2}.${EXT}.bak 2>/dev/null
     else
       if [[ ${2} != "release" ]]; then
@@ -463,6 +648,9 @@ function enable_repository {
   [[ ${1} = "ps-56" ]]    && DESCRIPTION=${PS56_DESC}
   [[ ${1} = "ps-57" ]]    && DESCRIPTION=${PS57_DESC}
   [[ ${1} = "ps-80" ]]    && DESCRIPTION=${PS80_DESC}
+  [[ ${1} = "ps-80-pro" ]]    && DESCRIPTION=${PS80_PRO_DESC}
+  [[ ${1} = "ps-57-eol" ]]    && DESCRIPTION=${PS57_EOL_DESC}
+  [[ ${1} = "pxc-57-eol" ]]    && DESCRIPTION=${PXC57_EOL_DESC}
   [[ ${1} = "pxc-56" ]]   && DESCRIPTION=${PXC56_DESC}
   [[ ${1} = "pxc-57" ]]   && DESCRIPTION=${PXC57_DESC}
   [[ ${1} = "pxc-80" ]]   && DESCRIPTION=${PXC80_DESC}
@@ -489,7 +677,19 @@ function enable_repository {
   [[ ${1} = "pdps-8.0.19" ]]    && DESCRIPTION=${PDMYSQL80_19_DESC}
   [[ ${1} = "pdps-8.0.20" ]]    && DESCRIPTION=${PDMYSQL80_20_DESC}
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
+  [[ ${1} = "pdps-8x-innovation" ]]    && DESCRIPTION=${PDPS8X_INNOVATION_DESC}
+  [[ ${1} = "ps-8x-innovation" ]]    && DESCRIPTION=${PS8X_INNOVATION_DESC}
+  [[ ${1} = "pxc-8x-innovation" ]]    && DESCRIPTION=${PXC8X_INNOVATION_DESC}
+  [[ ${1} = "pdpxc-8x-innovation" ]]    && DESCRIPTION=${PDPXC8X_INNOVATION_DESC}
+  [[ ${1} = "pxb-8x-innovation" ]]    && DESCRIPTION=${PXB8X_INNOVATION_DESC}
+  [[ ${1} = "pdps-9x-innovation" ]]    && DESCRIPTION=${PDPS9X_INNOVATION_DESC}
+  [[ ${1} = "ps-9x-innovation" ]]    && DESCRIPTION=${PS9X_INNOVATION_DESC}
+  [[ ${1} = "pxc-9x-innovation" ]]    && DESCRIPTION=${PXC9X_INNOVATION_DESC}
+  [[ ${1} = "pdpxc-9x-innovation" ]]    && DESCRIPTION=${PDPXC9X_INNOVATION_DESC}
+  [[ ${1} = "pxb-9x-innovation" ]]    && DESCRIPTION=${PXB9X_INNOVATION_DESC}
   [[ ${1} = "prel" ]]    && DESCRIPTION=${PREL_DESC}
+  [[ ${1} = "telemetry" ]]    && DESCRIPTION=${TELEMETRY_DESC}
+  [[ ${1} = "valkey" ]]    && DESCRIPTION=${VALKEY_DESC}
   [[ ${1} = "proxysql" ]]    && DESCRIPTION=${PROXYSQL_DESC}
   [[ ${1} = "sysbench" ]]    && DESCRIPTION=${SYSBENCH_DESC}
   [[ ${1} = "pt" ]]    && DESCRIPTION=${PT_DESC}
@@ -497,6 +697,7 @@ function enable_repository {
   [[ ${1} = "mysql-shell" ]]    && DESCRIPTION=${MYSQL_SHELL_DESC}
   [[ ${1} = "pmm-client" ]]    && DESCRIPTION=${PMM_CLIENT_DESC}
   [[ ${1} = "pmm2-client" ]]    && DESCRIPTION=${PMM2_CLIENT_DESC}
+  [[ ${1} = "pmm3-client" ]]    && DESCRIPTION=${PMM3_CLIENT_DESC}
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
@@ -506,6 +707,7 @@ function enable_repository {
     fi
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
+    [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
     [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
@@ -513,7 +715,13 @@ function enable_repository {
   fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
-  enable_component ${1} ${2}
+
+  if [[ -z ${2} ]] || [[ ${2} == *"--user_name="* ]] || [[ ${2} == *"--repo_token="* ]]; then
+    COMPONENT="release"
+  else
+    COMPONENT=${2}
+  fi
+  enable_component ${1} ${COMPONENT}
   MODIFIED=YES
 }
 #
@@ -523,7 +731,7 @@ function disable_repository {
     disable_component all
   else
     check_specified_repo ${1}
-    if [[ ${1} != "prel" ]]; then
+    if [[ ${1} != "prel" && ${1} != "telemetry" ]]; then
       disable_component ${1} ${2}
     else
       if [[ ${2} != "release" ]]; then
@@ -532,6 +740,33 @@ function disable_repository {
     fi
   fi
   MODIFIED=YES
+}
+#
+function update_rpm {
+  if [[ -f /usr/bin/dnf ]]; then
+    RHEL=$(rpm --eval %rhel)
+    UPDATES=$(yum check-update rpm)
+    if [ $? -eq 100 ]; then
+      if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
+        RHEL=$(rpm --eval %rhel)
+        if [[ ${INTERACTIVE} = YES ]]; then
+          echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
+          read -r -p "Do you want to update it? [y/N] " response
+          if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+          then
+            dnf -y update rpm
+          else
+            echo "Please note that using an old version of rpm package can cause dependency issues or conflicts with existing packages."
+            echo "If in the future you decide to update rpm package please execute the next command:"
+            echo "  dnf update rpm"
+          fi
+        else
+          echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
+          dnf -y update rpm
+        fi
+      fi
+    fi
+  fi
 }
 #
 function check_enabled_modules {
@@ -595,11 +830,23 @@ function disable_dnf_module {
 #
 function enable_alias {
   local REPOS=""
-  local NAME=$( echo ${1} | sed 's/-//' )
+  if [[ ${1} != *-pro ]] && [[ ${1} != *-innovation ]] && [[ ${1} != *-eol  ]]; then
+    local NAME=$( echo ${1} | sed 's/-//' )
+  else
+    local NAME=${1}
+  fi
   check_specified_alias ${NAME}
+  if [[ ${NAME} == *xinnovation ]]; then
+    NAME=$( echo ${NAME} | sed 's/innovation/-innovation/' )
+  fi
   [[ ${NAME} = ps56 ]] && REPOS=${PS56REPOS:-}
   [[ ${NAME} = ps57 ]] && REPOS=${PS57REPOS:-}
   [[ ${NAME} = ps80 ]] && REPOS=${PS80REPOS:-}
+  [[ ${NAME} = ps57-eol ]] && REPOS=${PS57EOLREPOS:-}
+  [[ ${NAME} = pxc57-eol ]] && REPOS=${PXC57EOLREPOS:-}
+  [[ ${NAME} = ps80-pro ]] && REPOS=${PS80PROREPOS:-}
+  [[ ${NAME} = psmdb60-pro ]] && REPOS=${PSMDB60PROREPOS:-}
+  [[ ${NAME} = psmdb70-pro ]] && REPOS=${PSMDB70PROREPOS:-}
   [[ ${NAME} = pxc56 ]] && REPOS=${PXC56REPOS:-}
   [[ ${NAME} = pxc57 ]] && REPOS=${PXC57REPOS:-}
   [[ ${NAME} = pxc80 ]] && REPOS=${PXC80REPOS:-}
@@ -625,7 +872,18 @@ function enable_alias {
   [[ ${NAME} = pdps8.0.20 ]] && REPOS=${PDPS80_20_REPOS:-}
   [[ ${NAME} = pdpxc8.0 ]] && REPOS=${PDPXC80_REPOS:-}
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
+  [[ ${NAME} = pdps8x-innovation ]] && REPOS=${PDPS8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = ps8x-innovation ]] && REPOS=${PS8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxc8x-innovation ]] && REPOS=${PXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdpxc8x-innovation ]] && REPOS=${PDPXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxb8x-innovation ]] && REPOS=${PXB8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdps9x-innovation ]] && REPOS=${PDPS9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = ps9x-innovation ]] && REPOS=${PS9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxc9x-innovation ]] && REPOS=${PXC9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdpxc9x-innovation ]] && REPOS=${PDPXC9X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxb9x-innovation ]] && REPOS=${PXB9X_INNOVATION_REPOS:-}
   [[ ${NAME} = prel ]] && REPOS=${PREL_REPOS:-}
+  [[ ${NAME} = telemetry ]] && REPOS=${PREL_REPOS:-}
   [[ ${NAME} = proxysql ]] && REPOS=${PROXYSQL_REPOS:-}
   [[ ${NAME} = sysbench ]] && REPOS=${SYSBENCH_REPOS:-}
   [[ ${NAME} = pt ]] && REPOS=${PT_REPOS:-}
@@ -633,6 +891,7 @@ function enable_alias {
   [[ ${NAME} = mysqlshell ]] && REPOS=${MYSQL_SHELL_REPOS:-}
   [[ ${NAME} = pmmclient ]] && REPOS=${PMM_CLIENT_REPOS:-}
   [[ ${NAME} = pmm2client ]] && REPOS=${PMM2_CLIENT_REPOS:-}
+  [[ ${NAME} = pmm3client ]] && REPOS=${PMM3_CLIENT_REPOS:-}
   [[ ${NAME} = tools ]] && REPOS=${TOOLS_REPOS:-}
   [[ ${NAME} = original ]] && REPOS=${ORIGINAL_REPOS:-}
   [[ ${NAME} = percona ]] && REPOS=${ORIGINAL_REPOS:-}
@@ -647,8 +906,9 @@ function enable_alias {
       [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
     fi
   fi
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]]; then
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]] || [[ ${NAME} == *innovation ]]; then
     disable_dnf_module ${NAME}
+    update_rpm ${NAME}
   fi
   for _repo in ${REPOS}; do
     if [[ -z $(echo ${REPOSITORIES} | grep -o ${_repo}) ]]; then
@@ -686,6 +946,10 @@ case $(echo ${1} | sed 's/^--//g') in
     enable_repository $@
     run_update
     ;;
+  enable-silent )
+    shift
+    enable_repository $@
+    ;;
   enable-only )
     shift
     echo "* Disabling all Percona Repositories"
@@ -720,3 +984,4 @@ if [[ ${AUTOUPDATE} = NO ]]; then
   show_message
 fi
 #
+
