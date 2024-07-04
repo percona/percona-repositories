@@ -37,7 +37,6 @@ case "$1" in
         if [[ ! $file == *.bak ]]; then
           # Skip files that contain 'signed-by='
           if grep -q 'signed-by=' "$file"; then
-            echo "Skipping $file because it contains 'signed-by='"
             continue
           fi
 
