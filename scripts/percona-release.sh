@@ -701,7 +701,7 @@ function enable_repository {
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
-    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g' | tr -dc '0-9')
+    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
     if [[ $version != *.* && $name != "ppg" ]] ; then
       version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
     fi
@@ -710,7 +710,6 @@ function enable_repository {
     [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
-    [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
