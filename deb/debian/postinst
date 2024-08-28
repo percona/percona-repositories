@@ -33,7 +33,7 @@ case "$1" in
       fi
       directory="/etc/apt/sources.list.d"
 
-      for file in $directory/percona*; do
+      for file in $(ls $directory/percona* 2>/dev/null); do
         if [[ ! $file == *.bak ]]; then
           # Skip files that contain 'signed-by='
           if grep -q 'signed-by=' "$file"; then
