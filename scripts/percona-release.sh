@@ -221,9 +221,12 @@ PPG12_3_REPOS="ppg-12.3"
 PDPS80_REPOS="pdps-8.0"
 PDPS8X_INNOVATION_REPOS="pdps-8x-innovation"
 PS8X_INNOVATION_REPOS="ps-8x-innovation"
+PS84_LTS_REPOS="ps-84-lts"
 PXC8X_INNOVATION_REPOS="pxc-8x-innovation"
+PXC84_LTS_REPOS="pxc-84-lts"
 PDPXC8X_INNOVATION_REPOS="pdpxc-8x-innovation"
 PXB8X_INNOVATION_REPOS="pxb-8x-innovation"
+PXB84_LTS_REPOS="pxb-84-lts"
 PDPS9X_INNOVATION_REPOS="pdps-9x-innovation"
 PS9X_INNOVATION_REPOS="ps-9x-innovation"
 PXC9X_INNOVATION_REPOS="pxc-9x-innovation"
@@ -301,6 +304,7 @@ function check_specified_alias {
     [[ ${NAME} == *pro ]] && found=YES
     [[ ${NAME} == *eol ]] && found=YES
     [[ ${NAME} == *innovation ]] && found=YES
+    [[ ${NAME} == *lts ]] && found=YES
     [[ ${_alias} = ${NAME} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
@@ -441,6 +445,9 @@ function check_repo_availability {
   fi
   if [[ ${REPO_NAME} == *xinnovation ]]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/innovation/-innovation/' )
+  fi
+  if [[ ${REPO_NAME} == *4lts ]]; then
+    REPO_NAME=$(echo ${REPO_NAME} | sed 's/lts/-lts/' )
   fi
 
   if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
@@ -679,9 +686,12 @@ function enable_repository {
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
   [[ ${1} = "pdps-8x-innovation" ]]    && DESCRIPTION=${PDPS8X_INNOVATION_DESC}
   [[ ${1} = "ps-8x-innovation" ]]    && DESCRIPTION=${PS8X_INNOVATION_DESC}
+  [[ ${1} = "ps-84-lts" ]]    && DESCRIPTION=${PS84_LTS_DESC}
   [[ ${1} = "pxc-8x-innovation" ]]    && DESCRIPTION=${PXC8X_INNOVATION_DESC}
+  [[ ${1} = "pxc-84-lts" ]]    && DESCRIPTION=${PXC84_LTS_DESC}
   [[ ${1} = "pdpxc-8x-innovation" ]]    && DESCRIPTION=${PDPXC8X_INNOVATION_DESC}
   [[ ${1} = "pxb-8x-innovation" ]]    && DESCRIPTION=${PXB8X_INNOVATION_DESC}
+  [[ ${1} = "pxb-84-lts" ]]    && DESCRIPTION=${PXB84_LTS_DESC}
   [[ ${1} = "pdps-9x-innovation" ]]    && DESCRIPTION=${PDPS9X_INNOVATION_DESC}
   [[ ${1} = "ps-9x-innovation" ]]    && DESCRIPTION=${PS9X_INNOVATION_DESC}
   [[ ${1} = "pxc-9x-innovation" ]]    && DESCRIPTION=${PXC9X_INNOVATION_DESC}
@@ -701,7 +711,7 @@ function enable_repository {
   if [[ -z ${DESCRIPTION} ]]; then
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
-    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
+    version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g' | tr -dc '0-9')
     if [[ $version != *.* && $name != "ppg" ]] ; then
       version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
     fi
@@ -829,7 +839,7 @@ function disable_dnf_module {
 #
 function enable_alias {
   local REPOS=""
-  if [[ ${1} != *-pro ]] && [[ ${1} != *-innovation ]] && [[ ${1} != *-eol  ]]; then
+  if [[ ${1} != *-pro ]] && [[ ${1} != *-innovation ]] && [[ ${1} != *-eol  ]] && [[ ${1} != *-lts  ]]; then
     local NAME=$( echo ${1} | sed 's/-//' )
   else
     local NAME=${1}
@@ -837,6 +847,9 @@ function enable_alias {
   check_specified_alias ${NAME}
   if [[ ${NAME} == *xinnovation ]]; then
     NAME=$( echo ${NAME} | sed 's/innovation/-innovation/' )
+  fi
+  if [[ ${NAME} == *4lts ]]; then
+    NAME=$(echo ${NAME} | sed 's/lts/-lts/' )
   fi
   [[ ${NAME} = ps56 ]] && REPOS=${PS56REPOS:-}
   [[ ${NAME} = ps57 ]] && REPOS=${PS57REPOS:-}
@@ -873,9 +886,12 @@ function enable_alias {
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
   [[ ${NAME} = pdps8x-innovation ]] && REPOS=${PDPS8X_INNOVATION_REPOS:-}
   [[ ${NAME} = ps8x-innovation ]] && REPOS=${PS8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = ps84-lts ]] && REPOS=${PS84_LTS_REPOS:-}
   [[ ${NAME} = pxc8x-innovation ]] && REPOS=${PXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxc84-lts ]] && REPOS=${PXC84_LTS_REPOS:-}
   [[ ${NAME} = pdpxc8x-innovation ]] && REPOS=${PDPXC8X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxb8x-innovation ]] && REPOS=${PXB8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxb84-lts ]] && REPOS=${PXB84_LTS_REPOS:-}
   [[ ${NAME} = pdps9x-innovation ]] && REPOS=${PDPS9X_INNOVATION_REPOS:-}
   [[ ${NAME} = ps9x-innovation ]] && REPOS=${PS9X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxc9x-innovation ]] && REPOS=${PXC9X_INNOVATION_REPOS:-}
@@ -905,7 +921,7 @@ function enable_alias {
       [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
     fi
   fi
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]] || [[ ${NAME} == *innovation ]]; then
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]] || [[ ${NAME} == *innovation ]] || [[ ${NAME} == *lts ]]; then
     disable_dnf_module ${NAME}
     update_rpm ${NAME}
   fi
