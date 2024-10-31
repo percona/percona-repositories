@@ -222,6 +222,7 @@ PDPS80_REPOS="pdps-8.0"
 PDPS8X_INNOVATION_REPOS="pdps-8x-innovation"
 PS8X_INNOVATION_REPOS="ps-8x-innovation"
 PS84_LTS_REPOS="ps-84-lts"
+PDPS84_LTS_REPOS="pdps-84-lts"
 PXC8X_INNOVATION_REPOS="pxc-8x-innovation"
 PXC84_LTS_REPOS="pxc-84-lts"
 PDPXC8X_INNOVATION_REPOS="pdpxc-8x-innovation"
@@ -892,6 +893,7 @@ function enable_alias {
   [[ ${NAME} = pdpxc8x-innovation ]] && REPOS=${PDPXC8X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxb8x-innovation ]] && REPOS=${PXB8X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxb84-lts ]] && REPOS=${PXB84_LTS_REPOS:-}
+  [[ ${NAME} = pdps84-lts ]] && REPOS=${PDPS84_LTS_REPOS:-}
   [[ ${NAME} = pdps9x-innovation ]] && REPOS=${PDPS9X_INNOVATION_REPOS:-}
   [[ ${NAME} = ps9x-innovation ]] && REPOS=${PS9X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxc9x-innovation ]] && REPOS=${PXC9X_INNOVATION_REPOS:-}
