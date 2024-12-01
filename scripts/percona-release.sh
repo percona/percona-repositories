@@ -257,7 +257,7 @@ REPOFILE=""
 if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
   LOCATION=/etc/yum.repos.d
   EXT=repo
-  PKGTOOL=yum
+  PKGTOOL=dnf
   ARCH=$(rpm --eval %_arch)
 elif [[ -f /etc/debian_version ]]; then
   LOCATION=/etc/apt/sources.list.d
@@ -272,7 +272,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
+    for line in $(dnf repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -374,7 +374,7 @@ function check_specified_repo {
 function check_os_support {
    REPO_NAME=$1
    COMPONENT=$2
-   if [[ ${PKGTOOL} = yum ]]; then
+   if [[ ${PKGTOOL} = dnf ]]; then
     if [ -f /etc/os-release ]; then
       OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
     else
@@ -619,7 +619,7 @@ function enable_component {
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
     echo "#" >> ${REPOFILE}
-    if [[ ${PKGTOOL} = yum ]]; then
+    if [[ ${PKGTOOL} = dnf ]]; then
       create_yum_repo ${1} ${_component}
     elif [[ ${PKGTOOL} = "apt-get" ]]; then
       create_apt_repo ${1} ${_component}
@@ -756,7 +756,7 @@ function disable_repository {
 function update_rpm {
   if [[ -f /usr/bin/dnf ]]; then
     RHEL=$(rpm --eval %rhel)
-    UPDATES=$(yum check-update rpm)
+    UPDATES=$(dnf check-update rpm)
     if [ $? -eq 100 ]; then
       if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
         RHEL=$(rpm --eval %rhel)
