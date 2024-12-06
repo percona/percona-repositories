@@ -387,9 +387,17 @@ function check_os_support {
     fi
 
     if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
-      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      if [[ ${OS_VER} == 2023 ]]; then
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      else
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      fi
     else
-      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      if [[ ${OS_VER} == 2023 ]]; then
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      else
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      fi
     fi
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
@@ -532,6 +540,9 @@ function run_update {
 #
 function create_yum_repo {
   local _repo=${1}
+  if [ -f /etc/os-release ]; then
+      OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
+  fi
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
@@ -563,6 +574,9 @@ function create_yum_repo {
     fi
     echo "enabled = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
+    if [[ ${OS_VER} == 2023 ]]; then
+      sed -i 's/$releasever/2023/g' /etc/yum.repos.d/percona*.repo
+    fi
     [[ -n "${CURL_PROXY}" ]] && echo "proxy = ${CURL_PROXY}" >> ${REPOFILE}
     echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
     echo >> ${REPOFILE}
