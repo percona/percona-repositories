@@ -401,15 +401,15 @@ function check_os_support {
     fi
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    if [[ ${REPO_NAME} == *-pro ]]; then
+    if [[ ${REPO_NAME} == *-pro ]] || [[ ${REPO_NAME} == *-eol ]]; then
       reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
     else
       reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
     fi
   fi
   if [[ ${reply} != 200 ]]; then
-      if [[ ${REPO_NAME} == *-pro ]]; then
-        echo "Specified repository is not supported for current operating system or check your credentials."
+      if [[ ${REPO_NAME} == *-pro ]] || [[ ${REPO_NAME} == *-eol ]]; then
+	      echo "Specified repository ($REPO_NAME) is not supported for current operating system or check your credentials."
       else
         echo "Specified repository is not supported for current operating system!"
       fi
