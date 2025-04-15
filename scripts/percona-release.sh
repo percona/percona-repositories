@@ -388,23 +388,23 @@ function check_os_support {
 
     if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
       if [[ ${OS_VER} == 2023 ]]; then
-        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+        reply=$("${CURL_EXEC[@]}" -Is ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
       else
-        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+        reply=$("${CURL_EXEC[@]}" -Is ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
       fi
     else
       if [[ ${OS_VER} == 2023 ]]; then
-        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+        reply=$("${CURL_EXEC[@]}" -Is ${URL}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
       else
-        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+        reply=$("${CURL_EXEC[@]}" -Is ${URL}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
       fi
     fi
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
     if [[ ${REPO_NAME} == *-pro ]] || [[ ${REPO_NAME} == *-eol ]]; then
-      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      reply=$("${CURL_EXEC[@]}" -Is ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
     else
-      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      reply=$("${CURL_EXEC[@]}" -Is ${URL}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
     fi
   fi
   if [[ ${reply} != 200 ]]; then
@@ -463,9 +463,9 @@ function check_repo_availability {
   if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
     [[ -z ${USER_NAME} ]] && echo -e "ERROR: ${REPO_NAME} requires user_name for ${REPO_NAME} repository. Use --user_name switch to pass user name" && exit 2
     [[ -z ${REPO_TOKEN} ]] && echo -e "ERROR: ${REPO_NAME} requires repo_token for ${REPO_NAME} repository. Use --repo_token switch to pass repository token" && exit 2
-    REPO_LINK="http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/"
+    REPO_LINK="${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/"
   else
-    REPO_LINK="http://repo.percona.com/${REPO_NAME}/"
+    REPO_LINK="${URL}/${REPO_NAME}/"
   fi
   reply=$("${CURL_EXEC[@]}" -Is ${REPO_LINK} | head -n 1 | awk '{print $2}')
   if [[ ${reply} == 200 ]]; then
