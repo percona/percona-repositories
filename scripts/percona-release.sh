@@ -87,7 +87,7 @@ function get_repos_from_site {
     REPOSITORIES="original ps-56 ps-57 ps-80 pxb-24 pxb-80 pxc-56 pxc-57 pxc-80 psmdb-36 psmdb-40 psmdb-42 tools ppg-11 ppg-11.5 ppg-11.6 ppg-11.7 ppg-11.8 ppg-12 ppg-12.2 ppg-12.3 pdmdb-4.2 pdmdb-4.2.6 pdmdb-4.2.7 pdmdb-4.2.8 pdps-8.0.19 pdpxc-8.0.19 pdps-8.0.20 pdps-8.0 pdpxc-8.0 prel telemetry proxysql sysbench pt mysql-shell pbm pmm-client pmm2-client pmm3-client pdmdb-4.4 pdmdb-4.4.0 psmdb-44"
   fi
 
-  REPOSITORIES="${REPOSITORIES} ps-80-pro psmdb-60-pro psmdb-70-pro ps-57-eol pxc-57-eol"
+  REPOSITORIES="${REPOSITORIES} ps-80-pro ps-84-pro psmdb-60-pro psmdb-70-pro ps-57-eol pxc-57-eol pxc-80-pro pxc-84-pro"
   REPOSITORIES="${REPOSITORIES/percona/original}"
   for repo in ${REPOSITORIES[@]}
     do
@@ -221,9 +221,14 @@ PPG12_3_REPOS="ppg-12.3"
 PDPS80_REPOS="pdps-8.0"
 PDPS8X_INNOVATION_REPOS="pdps-8x-innovation"
 PS8X_INNOVATION_REPOS="ps-8x-innovation"
+PS84_LTS_REPOS="ps-84-lts"
+PDPS84_LTS_REPOS="pdps-84-lts"
 PXC8X_INNOVATION_REPOS="pxc-8x-innovation"
+PXC84_LTS_REPOS="pxc-84-lts"
 PDPXC8X_INNOVATION_REPOS="pdpxc-8x-innovation"
+PDPXC84_LTS_REPOS="pdpxc-84-lts"
 PXB8X_INNOVATION_REPOS="pxb-8x-innovation"
+PXB84_LTS_REPOS="pxb-84-lts"
 PDPS9X_INNOVATION_REPOS="pdps-9x-innovation"
 PS9X_INNOVATION_REPOS="ps-9x-innovation"
 PXC9X_INNOVATION_REPOS="pxc-9x-innovation"
@@ -252,7 +257,7 @@ REPOFILE=""
 if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
   LOCATION=/etc/yum.repos.d
   EXT=repo
-  PKGTOOL=yum
+  PKGTOOL=dnf
   ARCH=$(rpm --eval %_arch)
 elif [[ -f /etc/debian_version ]]; then
   LOCATION=/etc/apt/sources.list.d
@@ -267,7 +272,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(yum repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
+    for line in $(dnf repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -301,6 +306,7 @@ function check_specified_alias {
     [[ ${NAME} == *pro ]] && found=YES
     [[ ${NAME} == *eol ]] && found=YES
     [[ ${NAME} == *innovation ]] && found=YES
+    [[ ${NAME} == *lts ]] && found=YES
     [[ ${_alias} = ${NAME} ]] && found=YES
   done
   if [[ ${found} = NO ]]; then
@@ -368,7 +374,7 @@ function check_specified_repo {
 function check_os_support {
    REPO_NAME=$1
    COMPONENT=$2
-   if [[ ${PKGTOOL} = yum ]]; then
+   if [[ ${PKGTOOL} = dnf ]]; then
     if [ -f /etc/os-release ]; then
       OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
     else
@@ -381,21 +387,29 @@ function check_os_support {
     fi
 
     if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
-      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      if [[ ${OS_VER} == 2023 ]]; then
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      else
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      fi
     else
-      reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      if [[ ${OS_VER} == 2023 ]]; then
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      else
+        reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
+      fi
     fi
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
-    if [[ ${REPO_NAME} == *-pro ]]; then
+    if [[ ${REPO_NAME} == *-pro ]] || [[ ${REPO_NAME} == *-eol ]]; then
       reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
     else
       reply=$("${CURL_EXEC[@]}" -Is http://repo.percona.com/${REPO_NAME}/apt/dists/${OS_VER}/ | head -n 1 | awk '{print $2}')
     fi
   fi
   if [[ ${reply} != 200 ]]; then
-      if [[ ${REPO_NAME} == *-pro ]]; then
-        echo "Specified repository is not supported for current operating system or check your credentials."
+      if [[ ${REPO_NAME} == *-pro ]] || [[ ${REPO_NAME} == *-eol ]]; then
+        echo "Specified repository ($REPO_NAME) is not supported for current operating system or check your credentials."
       else
         echo "Specified repository is not supported for current operating system!"
       fi
@@ -441,6 +455,9 @@ function check_repo_availability {
   fi
   if [[ ${REPO_NAME} == *xinnovation ]]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/innovation/-innovation/' )
+  fi
+  if [[ ${REPO_NAME} == *4lts ]]; then
+    REPO_NAME=$(echo ${REPO_NAME} | sed 's/lts/-lts/' )
   fi
 
   if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
@@ -523,6 +540,9 @@ function run_update {
 #
 function create_yum_repo {
   local _repo=${1}
+  if [ -f /etc/os-release ]; then
+      OS_VER=$(grep VERSION_ID= /etc/os-release | awk -F'"' '{print $2}' | awk -F'.' '{print $1}')
+  fi
   ARCH_LIST="${ARCH} sources"
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
@@ -554,6 +574,9 @@ function create_yum_repo {
     fi
     echo "enabled = ${ENABLE}" >> ${REPOFILE}
     echo "gpgcheck = 1" >> ${REPOFILE}
+    if [[ ${OS_VER} == 2023 ]]; then
+      sed -i 's/$releasever/2023/g' /etc/yum.repos.d/percona*.repo
+    fi
     [[ -n "${CURL_PROXY}" ]] && echo "proxy = ${CURL_PROXY}" >> ${REPOFILE}
     echo "gpgkey = file:///etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY" >> ${REPOFILE}
     echo >> ${REPOFILE}
@@ -610,7 +633,7 @@ function enable_component {
     echo "#" > ${REPOFILE}
     echo "# This repo is managed by \"$(basename ${0})\" utility, do not edit!" >> ${REPOFILE}
     echo "#" >> ${REPOFILE}
-    if [[ ${PKGTOOL} = yum ]]; then
+    if [[ ${PKGTOOL} = dnf ]]; then
       create_yum_repo ${1} ${_component}
     elif [[ ${PKGTOOL} = "apt-get" ]]; then
       create_apt_repo ${1} ${_component}
@@ -679,9 +702,12 @@ function enable_repository {
   [[ ${1} = "pdpxc-8.0.19" ]]    && DESCRIPTION=${PDPXC80_19_DESC}
   [[ ${1} = "pdps-8x-innovation" ]]    && DESCRIPTION=${PDPS8X_INNOVATION_DESC}
   [[ ${1} = "ps-8x-innovation" ]]    && DESCRIPTION=${PS8X_INNOVATION_DESC}
+  [[ ${1} = "ps-84-lts" ]]    && DESCRIPTION=${PS84_LTS_DESC}
   [[ ${1} = "pxc-8x-innovation" ]]    && DESCRIPTION=${PXC8X_INNOVATION_DESC}
+  [[ ${1} = "pxc-84-lts" ]]    && DESCRIPTION=${PXC84_LTS_DESC}
   [[ ${1} = "pdpxc-8x-innovation" ]]    && DESCRIPTION=${PDPXC8X_INNOVATION_DESC}
   [[ ${1} = "pxb-8x-innovation" ]]    && DESCRIPTION=${PXB8X_INNOVATION_DESC}
+  [[ ${1} = "pxb-84-lts" ]]    && DESCRIPTION=${PXB84_LTS_DESC}
   [[ ${1} = "pdps-9x-innovation" ]]    && DESCRIPTION=${PDPS9X_INNOVATION_DESC}
   [[ ${1} = "ps-9x-innovation" ]]    && DESCRIPTION=${PS9X_INNOVATION_DESC}
   [[ ${1} = "pxc-9x-innovation" ]]    && DESCRIPTION=${PXC9X_INNOVATION_DESC}
@@ -744,7 +770,7 @@ function disable_repository {
 function update_rpm {
   if [[ -f /usr/bin/dnf ]]; then
     RHEL=$(rpm --eval %rhel)
-    UPDATES=$(yum check-update rpm)
+    UPDATES=$(dnf check-update rpm)
     if [ $? -eq 100 ]; then
       if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
         RHEL=$(rpm --eval %rhel)
@@ -829,7 +855,7 @@ function disable_dnf_module {
 #
 function enable_alias {
   local REPOS=""
-  if [[ ${1} != *-pro ]] && [[ ${1} != *-innovation ]] && [[ ${1} != *-eol  ]]; then
+  if [[ ${1} != *-pro ]] && [[ ${1} != *-innovation ]] && [[ ${1} != *-eol  ]] && [[ ${1} != *-lts  ]]; then
     local NAME=$( echo ${1} | sed 's/-//' )
   else
     local NAME=${1}
@@ -837,6 +863,9 @@ function enable_alias {
   check_specified_alias ${NAME}
   if [[ ${NAME} == *xinnovation ]]; then
     NAME=$( echo ${NAME} | sed 's/innovation/-innovation/' )
+  fi
+  if [[ ${NAME} == *4lts ]]; then
+    NAME=$(echo ${NAME} | sed 's/lts/-lts/' )
   fi
   [[ ${NAME} = ps56 ]] && REPOS=${PS56REPOS:-}
   [[ ${NAME} = ps57 ]] && REPOS=${PS57REPOS:-}
@@ -873,9 +902,14 @@ function enable_alias {
   [[ ${NAME} = pdpxc8.0.19 ]] && REPOS=${PDPXC80_19_REPOS:-}
   [[ ${NAME} = pdps8x-innovation ]] && REPOS=${PDPS8X_INNOVATION_REPOS:-}
   [[ ${NAME} = ps8x-innovation ]] && REPOS=${PS8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = ps84-lts ]] && REPOS=${PS84_LTS_REPOS:-}
   [[ ${NAME} = pxc8x-innovation ]] && REPOS=${PXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxc84-lts ]] && REPOS=${PXC84_LTS_REPOS:-}
   [[ ${NAME} = pdpxc8x-innovation ]] && REPOS=${PDPXC8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pdpxc84-lts ]] && REPOS=${PDPXC84_LTS_REPOS:-}
   [[ ${NAME} = pxb8x-innovation ]] && REPOS=${PXB8X_INNOVATION_REPOS:-}
+  [[ ${NAME} = pxb84-lts ]] && REPOS=${PXB84_LTS_REPOS:-}
+  [[ ${NAME} = pdps84-lts ]] && REPOS=${PDPS84_LTS_REPOS:-}
   [[ ${NAME} = pdps9x-innovation ]] && REPOS=${PDPS9X_INNOVATION_REPOS:-}
   [[ ${NAME} = ps9x-innovation ]] && REPOS=${PS9X_INNOVATION_REPOS:-}
   [[ ${NAME} = pxc9x-innovation ]] && REPOS=${PXC9X_INNOVATION_REPOS:-}
@@ -905,7 +939,7 @@ function enable_alias {
       [[ ${name} = "pdpxc" ]] && REPOS="$name-$version"
     fi
   fi
-  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]] || [[ ${NAME} == *innovation ]]; then
+  if [[ ${NAME} = ps80 ]] || [[ ${NAME} == ps80-pro ]] || [[ ${NAME} == psmdb70-pro ]] || [[ ${NAME} == psmdb60-pro ]] || [[ ${NAME} == pxc* ]] || [[ ${NAME} == ppg* ]] || [[ ${NAME} == pdps* ]] || [[ ${NAME} == pdpxc* ]] || [[ ${NAME} == *innovation ]] || [[ ${NAME} == *lts ]]; then
     disable_dnf_module ${NAME}
     update_rpm ${NAME}
   fi
