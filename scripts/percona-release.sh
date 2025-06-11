@@ -77,6 +77,22 @@ function sort_array {
   echo -e ${OTHER_PRODUCTS}
 }
 
+function update_scheme_if_needed() {
+    URL="http://repo.percona.com"
+
+    while [[ $# -gt 1 ]]; do
+        if [[ "$1" == "--scheme" && "$2" == "https" ]]; then
+            URL="https://repo.percona.com"
+            shift 2
+        elif [[ "$1" == "--scheme" && "$2" == "http" ]]; then
+            URL="http://repo.percona.com"
+            shift 2
+        else
+            shift
+        fi
+    done
+}
+
 function get_repos_from_site {
   if [ "${REPOSITORIES}" != "" ]; then
       return
@@ -103,7 +119,6 @@ function get_repos_from_site {
 COMMANDS="enable enable-silent enable-only setup disable show help"
 COMPONENTS="release testing experimental"
 REPOSITORIES=""
-URL="http://repo.percona.com"
 SUPPORTED_ARCHS="i386 noarch x86_64 aarch64 sources"
 
 if [[ -f /etc/default/percona-release ]]; then
@@ -741,7 +756,7 @@ function enable_repository {
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
   echo "* Enabling the ${DESCRIPTION} repository"
 
-  if [[ -z ${2} ]] || [[ ${2} == *"--user_name="* ]] || [[ ${2} == *"--repo_token="* ]]; then
+  if [[ -z ${2} ]] || [[ ${2} == *"--user_name="* ]] || [[ ${2} == *"--repo_token="* ]] || [[ ${2} == *"--scheme"* ]] || [[ ${2} == *"http"* ]]; then
     COMPONENT="release"
   else
     COMPONENT=${2}
@@ -957,13 +972,14 @@ function enable_alias {
 function check_setup_command {
   if [[ "$1" == "-y" || "${!#}" == "-y" ]]; then
       export INTERACTIVE=no
-  elif [[ -n ${2} ]]; then
+  elif [[ -n ${2} ]] && [[ ${2} != "--scheme" ]]; then
     echo "* \"setup\" command supports only \"-y\""
     show_help
     exit 2
   fi
 }
 #
+update_scheme_if_needed $@
 get_repos_from_site
 #
 if [[ ${COMMANDS} != *$(echo ${1} | sed 's/^--//g')* ]]; then
