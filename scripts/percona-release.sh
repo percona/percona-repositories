@@ -402,17 +402,9 @@ function check_os_support {
     fi
 
     if [[ ${REPO_NAME} == *-pro ]] || [[ "${REPO_NAME}" == *-eol ]]; then
-      if [[ ${OS_VER} == 2023 ]]; then
-        reply=$("${CURL_EXEC[@]}" -Is ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
-      else
-        reply=$("${CURL_EXEC[@]}" -Is ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
-      fi
+      reply=$("${CURL_EXEC[@]}" -Is ${URL}/private/${USER_NAME}-${REPO_TOKEN}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
     else
-      if [[ ${OS_VER} == 2023 ]]; then
-        reply=$("${CURL_EXEC[@]}" -Is ${URL}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
-      else
-        reply=$("${CURL_EXEC[@]}" -Is ${URL}/${REPO_NAME}/yum/release/${OS_VER}/ | head -n 1 | awk '{print $2}')
-      fi
+      reply=$("${CURL_EXEC[@]}" -Is ${URL}/${REPO_NAME}/yum/${COMPONENT}/${OS_VER}/ | head -n 1 | awk '{print $2}')
     fi
   elif [[ ${PKGTOOL} = "apt-get" ]]; then
     OS_VER=$(lsb_release -sc)
