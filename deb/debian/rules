@@ -13,3 +13,6 @@ DEBVERSION = $(shell lsb_release -c -s)
 
 %:
 	dh $@
+
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip
