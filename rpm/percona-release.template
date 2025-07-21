@@ -83,8 +83,8 @@ EOF
 #
 if [ $1 -eq 0 ]; then
   %{_bindir}/percona-release disable all
-  mv /etc/yum.repos.d/percona-prel-release.repo /etc/yum.repos.d/percona-prel-release.repo.bak
-  mv /etc/yum.repos.d/percona-telemetry-release.repo /etc/yum.repos.d/percona-telemetry-release.repo.bak
+  mv /etc/yum.repos.d/percona-prel-release.repo /etc/yum.repos.d/percona-prel-release.repo.bak >/dev/null 2>&1 || :
+  mv /etc/yum.repos.d/percona-telemetry-release.repo /etc/yum.repos.d/percona-telemetry-release.repo.bak >/dev/null 2>&1 || :
 fi
 #
 
