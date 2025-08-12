@@ -287,7 +287,7 @@ fi
 function show_enabled {
   echo "The following repositories are enabled on your system:"
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
-    for line in $(dnf repolist enabled | egrep -ie "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
+    for line in $(dnf repolist enabled | grep -Ei -e "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
       if [[ $count = 3 ]]; then
         echo $line | awk -F '-' '{print $1"-"$2,"- "$3,"| "$4}'
@@ -433,7 +433,7 @@ function check_repo_availability {
     COMPONENT=${3}
   fi
 
-  if [[ -z ${COMPONENT} ]] || [[ ${COMPONENT} == *"--user_name="* ]] || [[ ${COMPONENT} == *"--repo_token="* ]]; then
+  if [[ -z ${COMPONENT} ]] || [[ ${COMPONENT} == *"--user_name="* ]] || [[ ${COMPONENT} == *"--repo_token="* ]] || [[ ${COMPONENT} == *"--scheme"* ]] || [[ ${COMPONENT} == *"http"* ]]; then
     COMPONENT="release"
   fi
 
@@ -451,7 +451,7 @@ function check_repo_availability {
         fi
   fi
 
-  if [[ -z ${COMPONENT} ]] || [[ ${COMPONENT} == *"user_name="* ]] || [[ ${COMPONENT} == *"repo_token="* ]]; then
+  if [[ -z ${COMPONENT} ]] || [[ ${COMPONENT} == *"user_name="* ]] || [[ ${COMPONENT} == *"repo_token="* ]] || [[ ${COMPONENT} == *"--scheme"* ]] || [[ ${COMPONENT} == *"http"* ]]; then
      COMPONENT="release"
   fi
   [[ -z ${REPO_NAME} ]] && return 0
