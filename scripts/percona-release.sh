@@ -518,10 +518,18 @@ function show_help {
   echo "  Example: $(basename ${0}) setup ps57 | ps-57"
   echo "  Example: $(basename ${0}) setup -y ps57 | setup -y ps-57"
   echo "  Example: $(basename ${0}) show"
+  echo "  Example: $(basename ${0}) enable ps-80 --scheme https"
+  echo "  Example: $(basename ${0}) enable-only ps-80 testing --scheme https"
+  echo "  Example: $(basename ${0}) setup ps-80 --scheme https"
+  echo "  Example: $(basename ${0}) setup -y ps-80 --scheme https"
   echo "  Example: $(basename ${0}) enable ps-80-pro release --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) enable ps-80-pro release --user_name=<User Name> --repo_token=<Pro repository token> --scheme https"
   echo "  Example: $(basename ${0}) enable-only ps-80 experimental --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) enable-only ps-80 experimental --user_name=<User Name> --repo_token=<Pro repository token> --scheme https"
   echo "  Example: $(basename ${0}) setup ps-80-pro --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) setup ps-80-pro --user_name=<User Name> --repo_token=<Pro repository token> --scheme https"
   echo "  Example: $(basename ${0}) setup -y ps-80-pro --user_name=<User Name> --repo_token=<Pro repository token>"
+  echo "  Example: $(basename ${0}) setup -y ps-80-pro --user_name=<User Name> --repo_token=<Pro repository token> --scheme https"
   echo
   echo "Available commands:          ${COMMANDS}"
   echo
@@ -535,6 +543,7 @@ function show_help {
   echo
   echo "The \"-y\" option for the setup command automatically answers \"yes\" for all interactive questions."
   echo "The \"show\" command will list all enabled Percona repos on the system."
+  echo "The \"--scheme\" parameter will allow to choose either https or http while enabling Percona repos on the system. If this parameter is not specified, http will be used by default"
   echo "Please see percona-release page for help: https://docs.percona.com/percona-software-repositories/percona-release.html"
 }
 #
