@@ -27,7 +27,6 @@ set -e
 
 case "$1" in
     configure)
-      eval "/usr/bin/apt-key add /usr/share/keyrings/percona-keyring.gpg  ${SUPRESSOR}"
       if [ -f /etc/default/percona-release ]; then
           . /etc/default/percona-release
       fi
