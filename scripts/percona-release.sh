@@ -789,7 +789,6 @@ function update_rpm {
     UPDATES=$(dnf check-update rpm)
     if [ $? -eq 100 ]; then
       if [[ -f /usr/bin/dnf && ${RHEL} = 8 ]]; then
-        RHEL=$(rpm --eval %rhel)
         if [[ ${INTERACTIVE} = YES ]]; then
           echo "On Red Hat 8 systems it is recommended to update rpm package to install ${PRODUCT}"
           read -r -p "Do you want to update it? [y/N] " response
