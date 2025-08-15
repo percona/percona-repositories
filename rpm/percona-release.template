@@ -60,7 +60,6 @@ if [ "x${OS}" = "x2023" ]; then
 else
     %{_bindir}/percona-release enable prel release
     %{_bindir}/percona-release enable telemetry release
-    %{_bindir}/percona-release enable pmm2-client release
 fi
 #
 cat << EOF

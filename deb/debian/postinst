@@ -89,7 +89,6 @@ case "$1" in
       fi
       /usr/bin/percona-release enable prel release || true
       /usr/bin/percona-release enable telemetry release || true
-      /usr/bin/percona-release enable pmm2-client release || true
       if [[ -f  ${OLDREPOFILE} ]]; then
         mv -f ${OLDREPOFILE} ${OLDREPOFILE}.bak
       fi
