@@ -553,6 +553,7 @@ function create_yum_repo {
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   [[ ${1} = "telemetry" ]] && ARCH_LIST="${ARCH} sources"
+  [[ ${1} = ppg* ]] && ARCH_LIST="${ARCH} noarch sources"
   for _key in ${ARCH_LIST}; do
     if ! is_supported_arch "$_key"; then
       echo "WARNING: Skipping ${_key} architecture, as it's not supported"
