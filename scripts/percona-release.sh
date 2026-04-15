@@ -209,7 +209,7 @@ PSP_DESC="Percona Server for PostgreSQL"
 #
 PS56REPOS="ps-56 tools"
 PS57REPOS="ps-57 pxb-24"
-PS80REPOS="ps-80 tools"
+PS80REPOS="ps-80"
 PS4MREPOS="ps4m"
 PS57EOLREPOS="ps-57-eol"
 PXC57EOLREPOS="pxc-57-eol"
@@ -556,6 +556,7 @@ function create_yum_repo {
   [[ ${1} = "original" ]] && _repo=percona && ARCH_LIST="${ARCH} noarch sources"
   [[ ${1} = "prel" ]] && ARCH_LIST="noarch"
   [[ ${1} = "telemetry" ]] && ARCH_LIST="${ARCH} sources"
+  [[ ${1} = ppg* ]] && ARCH_LIST="${ARCH} noarch sources"
   for _key in ${ARCH_LIST}; do
     if ! is_supported_arch "$_key"; then
       echo "WARNING: Skipping ${_key} architecture, as it's not supported"
