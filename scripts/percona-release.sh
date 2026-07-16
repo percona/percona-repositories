@@ -204,6 +204,7 @@ PDPXC9X_INNOVATION_DESC="Percona Distribution XtraDB Cluster 9x Innovation"
 PXB9X_INNOVATION_DESC="Percona XtraBackup 9x Innovation"
 PS_DESC="Percona Server for MySQL - PS"
 PDPXC_DESC="Percona Distribution for MySQL - PXC"
+PSP_DESC="Percona Server for PostgreSQL"
 #
 PS56REPOS="ps-56 tools"
 PS57REPOS="ps-57 pxb-24"
@@ -733,13 +734,14 @@ function enable_repository {
     REPO_NAME=$(echo ${1} | sed 's/-//')
     name=$(echo ${REPO_NAME} | sed 's/[0-9].*//g')
     version=$(echo ${REPO_NAME} | sed 's/[a-z]*//g')
-    if [[ $version != *.* && $name != "ppg" ]] ; then
+    if [[ $version != *.* && $name != "ppg" && $name != "psp" ]] ; then
       version=$(echo $version | sed -r ':A;s|([0-9])([0-9]){1}|\1.\2|g')
     fi
     [[ ${name} == ppg* ]]    && DESCRIPTION="${PPG_DESC} $version"
     [[ ${name} == pdmdb* ]]    && DESCRIPTION="${PDMDB_DESC} $version"
     [[ ${name} == ps* ]]    && DESCRIPTION="${PS_DESC} $version"
     [[ ${name} == psmdb* ]]    && DESCRIPTION="${PSMDB_DESC} $version"
+    [[ ${name} == psp* ]]    && DESCRIPTION="${PSP_DESC} $version"
     [[ ${name} == pdps* ]]    && DESCRIPTION="${PDPS_DESC} $version"
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
