@@ -107,7 +107,7 @@ function get_repos_from_site {
   REPOSITORIES="${REPOSITORIES/percona/original}"
   for repo in ${REPOSITORIES[@]}
     do
-      if [[ ${repo} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
+      if [[ ${repo} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$|^ps4m$ ]]; then
         ALIASES+="${repo} "
       else
         ALIASES+="${repo//-/} "
@@ -160,6 +160,7 @@ PS56_DESC="Percona Server for MySQL 5.6"
 PS57_DESC="Percona Server for MySQL 5.7"
 PS80_DESC="Percona Server for MySQL 8.0"
 PS80_PRO_DESC="Percona Server for MySQL 8.0 Pro"
+PS4M_DESC="Percona Search for MongoDB"
 PS57_EOL_DESC="Percona Server for MySQL 5.7 EOL"
 PXC57_EOL_DESC="Percona XtraDB Cluster 5.7 EOL"
 PXB24_DESC="Percona XtraBackup 2.4"
@@ -209,6 +210,7 @@ PSP_DESC="Percona Server for PostgreSQL"
 PS56REPOS="ps-56 tools"
 PS57REPOS="ps-57 pxb-24"
 PS80REPOS="ps-80 tools"
+PS4MREPOS="ps4m"
 PS57EOLREPOS="ps-57-eol"
 PXC57EOLREPOS="pxc-57-eol"
 PXC56REPOS="pxc-56 tools"
@@ -454,7 +456,7 @@ function check_repo_availability {
   [[ -z ${REPO_NAME} ]] && return 0
   [[ ${REPO_NAME} == "original" ]] && REPO_NAME=percona
   [[ ${REPO_NAME} == "all" ]] && return 0
-  if ! [[ ${REPO_NAME} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$ ]]; then
+  if ! [[ ${REPO_NAME} =~ ^mysql-shell$|^pmm-client$|^pmm2-client$|^pmm3-client$|^pmm2-components$|^ps4m$ ]]; then
     REPO_NAME=$(echo ${REPO_NAME} | sed 's/-//' | sed 's/\([0-9]\)/-\1/')
   fi
   if [[ ${REPO_NAME} == *xinnovation ]]; then
@@ -726,6 +728,7 @@ function enable_repository {
   [[ ${1} = "sysbench" ]]    && DESCRIPTION=${SYSBENCH_DESC}
   [[ ${1} = "pt" ]]    && DESCRIPTION=${PT_DESC}
   [[ ${1} = "pbm" ]]    && DESCRIPTION=${PBM_DESC}
+  [[ ${1} = "ps4m" ]]    && DESCRIPTION=${PS4M_DESC}
   [[ ${1} = "mysql-shell" ]]    && DESCRIPTION=${MYSQL_SHELL_DESC}
   [[ ${1} = "pmm-client" ]]    && DESCRIPTION=${PMM_CLIENT_DESC}
   [[ ${1} = "pmm2-client" ]]    && DESCRIPTION=${PMM2_CLIENT_DESC}
@@ -876,6 +879,7 @@ function enable_alias {
   [[ ${NAME} = ps56 ]] && REPOS=${PS56REPOS:-}
   [[ ${NAME} = ps57 ]] && REPOS=${PS57REPOS:-}
   [[ ${NAME} = ps80 ]] && REPOS=${PS80REPOS:-}
+  [[ ${NAME} = ps4m ]] && REPOS=${PS4MREPOS:-}
   [[ ${NAME} = ps57-eol ]] && REPOS=${PS57EOLREPOS:-}
   [[ ${NAME} = pxc57-eol ]] && REPOS=${PXC57EOLREPOS:-}
   [[ ${NAME} = pxc56 ]] && REPOS=${PXC56REPOS:-}
