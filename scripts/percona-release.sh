@@ -763,15 +763,19 @@ function enable_repository {
 #
 function disable_repository {
   local _repos=${1}
+  local _component=${2}
+  if [[ ${_component} == --* ]] || [[ ${_component} == http* ]]; then
+    _component=""
+  fi
   if [[ ${1} = all ]]; then
     disable_component all
   else
     check_specified_repo ${1}
     if [[ ${1} != "prel" && ${1} != "telemetry" ]]; then
-      disable_component ${1} ${2}
+      disable_component ${1} ${_component}
     else
-      if [[ ${2} != "release" ]]; then
-        disable_component ${1} ${2}
+      if [[ ${_component} != "release" ]]; then
+        disable_component ${1} ${_component}
       fi
     fi
   fi
