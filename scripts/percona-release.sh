@@ -284,8 +284,10 @@ else
   exit 1
 fi
 #
-function show_enabled {
-  echo "The following repositories are enabled on your system:"
+function get_enabled_repo_lines {
+  # Raw "family - component" lines for every enabled repo. This is the single
+  # source of truth used both to display enabled repos and to know which
+  # product families to check for installed packages.
   if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
     for line in $(dnf repolist enabled | grep -Ei -e "percona|sysbench|proxysql|pmm" | awk '{print $1}' | awk -F'/' '{print $1}' ); do
       count=$(grep -o '-' <<< $line | wc -l)
@@ -294,13 +296,129 @@ function show_enabled {
       else
         echo $line | awk -F '-' '{print $1" - "$2" | " $3}'
       fi
-    done
+    # A repo family can have more than one enabled architecture (e.g. ppg-*
+    # repos enable both x86_64 and noarch), which otherwise prints the same
+    # "family - component" line once per architecture.
+    done | awk -F' \\| ' '!seen[$1]++'
   elif [[ -f /etc/debian_version ]]; then
     grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $3$5}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
+  fi
+}
+#
+function show_enabled {
+  echo "The following repositories are enabled on your system:"
+  if [[ -f /etc/redhat-release ]] || [[ -f /etc/system-release ]]; then
+    get_enabled_repo_lines
+  elif [[ -f /etc/debian_version ]]; then
+    get_enabled_repo_lines
   else
     echo "==>> ERROR: Unsupported operating system"
     exit 1
   fi
+}
+#
+function get_enabled_repo_families {
+  # Prints the base repo name (e.g. "ps-80", "prel", "psp-16") for every currently enabled repo.
+  get_enabled_repo_lines | awk -F' - ' '{print $1}' | sed -E 's/[[:space:]]+$//' | grep -v '^$' | sort -u
+}
+#
+function trim_version {
+  # Drop the RPM epoch prefix (e.g. "1:8.0.36-28.1") and any distro noise
+  # so the version shown to the user is just the upstream/package version.
+  echo "$1" | sed -E 's/^[0-9]+://'
+}
+#
+function collect_installed_by_repo {
+  # Populates the nameref array $1 with one "family|pkgname|version" entry
+  # per installed Percona package.
+  local -n _out=$1
+  _out=()
+  local candidates pkg repoid family ver url
+  if [[ ${PKGTOOL} = dnf ]]; then
+    candidates=$(rpm -qa --qf '%{NAME}\n' 2>/dev/null | grep -Ei '^percona|^proxysql|^pmm|^sysbench')
+    while read -r pkg; do
+      [[ -z ${pkg} ]] && continue
+      # from_repo is recorded by dnf at install time; @System/@commandline
+      # mean the origin repo isn't known (e.g. installed from a local rpm).
+      repoid=$(dnf repoquery --installed --qf '%{from_repo}' "${pkg}" 2>/dev/null | head -n1)
+      [[ -z ${repoid} ]] && continue
+      [[ ${repoid} == @* ]] && continue
+      family=$(echo "${repoid}" | sed -E 's/-(release|testing|experimental)(-[a-zA-Z0-9_]+)?$//')
+      ver=$(trim_version "$(rpm -q --qf '%{VERSION}-%{RELEASE}' "${pkg}" 2>/dev/null)")
+      _out+=("${family}|${pkg}|${ver}")
+    done <<< "${candidates}"
+  elif [[ ${PKGTOOL} = "apt-get" ]]; then
+    candidates=$(dpkg-query -W -f='${Package}\n' 2>/dev/null | grep -Ei '^percona|^proxysql|^pmm|^sysbench')
+    while read -r pkg; do
+      [[ -z ${pkg} ]] && continue
+      # The first "500 <url> ..." line under the "***" (installed) version
+      # in `apt-cache policy` names the repo it was installed from.
+      url=$(apt-cache policy "${pkg}" 2>/dev/null | awk '/^ \*\*\*/{getline; print; exit}' | awk '{print $2}')
+      [[ -z ${url} ]] && continue
+      family=$(echo "${url}" | sed -E 's#^[a-zA-Z]+://[^/]+/##; s#/apt$##')
+      ver=$(trim_version "$(dpkg-query -W -f='${Version}' "${pkg}" 2>/dev/null)")
+      _out+=("${family}|${pkg}|${ver}")
+    done <<< "${candidates}"
+  fi
+}
+#
+function print_family_status {
+  local desc=$1 matched=$2
+  if [[ -z ${matched} ]]; then
+    echo "${desc} - repository enabled, no packages installed"
+    return
+  fi
+  if [[ $(printf '%s\n' "${matched}" | grep -c .) -le 1 ]]; then
+    echo "${desc} - ${matched}"
+  else
+    echo "${desc}:"
+    printf '%s\n' "${matched}" | sed 's/^/  /'
+  fi
+}
+#
+function show_installed_products {
+  local ALL_PKG_LINES=()
+  collect_installed_by_repo ALL_PKG_LINES
+
+  echo
+  echo "The following products are installed on your system:"
+
+  # Repos with packages installed print first; enabled-but-empty repos are
+  # held back and printed last so they don't interrupt the interesting part
+  # of the list.
+  local family matched printed=() with_pkgs=() empty_descs=()
+  for family in $(get_enabled_repo_families); do
+    resolve_repo_description "${family}"
+    printed+=("${family}")
+    matched=$(printf '%s\n' "${ALL_PKG_LINES[@]}" | awk -F'|' -v f="${family}" '$1==f {print $2" "$3}')
+    if [[ -z ${matched} ]]; then
+      [[ ${family} == "prel" ]] && continue
+      empty_descs+=("${DESCRIPTION}")
+    else
+      with_pkgs+=("$(print_family_status "${DESCRIPTION}" "${matched}")")
+    fi
+  done
+
+  # Also surface products installed from a repo that isn't currently enabled
+  # (e.g. it was disabled after the packages were installed).
+  local line seen_extra=()
+  for line in "${ALL_PKG_LINES[@]}"; do
+    family="${line%%|*}"
+    if [[ ! " ${printed[*]} " =~ " ${family} " ]] && [[ ! " ${seen_extra[*]} " =~ " ${family} " ]]; then
+      seen_extra+=("${family}")
+      resolve_repo_description "${family}"
+      matched=$(printf '%s\n' "${ALL_PKG_LINES[@]}" | awk -F'|' -v f="${family}" '$1==f {print $2" "$3}')
+      with_pkgs+=("$(print_family_status "${DESCRIPTION}" "${matched}")")
+    fi
+  done
+
+  local entry desc
+  for entry in "${with_pkgs[@]}"; do
+    echo "${entry}"
+  done
+  for desc in "${empty_descs[@]}"; do
+    echo "${desc} - repository enabled, no packages installed"
+  done
 }
 #
 function is_supported_arch {
@@ -676,8 +794,11 @@ function disable_component {
   fi
 }
 #
-function enable_repository {
-  check_specified_repo ${1}
+function resolve_repo_description {
+  # Sets the global DESCRIPTION variable for a given raw repo name
+  # (e.g. "ps-80", "pxc-56", "prel"). Used both when enabling a repo
+  # and when reporting on installed products for the "show" command.
+  DESCRIPTION=""
   [[ ${1} = "ps-56" ]]    && DESCRIPTION=${PS56_DESC}
   [[ ${1} = "ps-57" ]]    && DESCRIPTION=${PS57_DESC}
   [[ ${1} = "ps-80" ]]    && DESCRIPTION=${PS80_DESC}
@@ -750,6 +871,11 @@ function enable_repository {
     [[ ${name} == pdpxc* ]]    && DESCRIPTION="${PDPXC_DESC} $version"
   fi
   [[ -z ${DESCRIPTION} ]] && DESCRIPTION=${DEFAULT_REPO_DESC}
+}
+#
+function enable_repository {
+  check_specified_repo ${1}
+  resolve_repo_description ${1}
   echo "* Enabling the ${DESCRIPTION} repository"
 
   if [[ -z ${2} ]] || [[ ${2} == *"--user_name="* ]] || [[ ${2} == *"--repo_token="* ]] || [[ ${2} == *"--scheme"* ]] || [[ ${2} == *"http"* ]]; then
@@ -1019,6 +1145,7 @@ case $(echo ${1} | sed 's/^--//g') in
   show )
     shift
     show_enabled
+    show_installed_products
     ;;
   * )
     show_help
