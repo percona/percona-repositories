@@ -301,7 +301,7 @@ function get_enabled_repo_lines {
     # "family - component" line once per architecture.
     done | awk -F' \\| ' '!seen[$1]++'
   elif [[ -f /etc/debian_version ]]; then
-    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $3$5}' | sed "s;${URL}/;;g" | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
+    grep -E '^deb\s' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | cut -f2- -d: | grep "${URL/http*:\/\//}" | awk '{print $3$5}' | sed "s;${URL}/;;g" | sed -E 's;^private/[^/]+/;;' | sed 's;/apt; - ;g' | sed 's;percona;original;g' | sed 's;main;release;g'
   fi
 }
 #
